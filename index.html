@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Ticker Bill</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="calculator-container">
+    <h3>Smart Retail Bill</h3>
+    
+    <div class="screen">
+        <div id="history"></div>
+        <input type="text" id="result" readonly value="0">
+    </div>
+
+    <div class="extra-inputs">
+        <input type="number" id="prevDue" placeholder="Pichla Udhar">
+        <input type="number" id="received" placeholder="Aaj Jama">
+    </div>
+
+    <div class="buttons">
+        <button onclick="clearAll()" class="col-span-2 btn-clear">C</button>
+        <button onclick="backspace()">⌫</button>
+        <button onclick="addOperator('/')">÷</button>
+        
+        <button onclick="addNumber('7')">7</button>
+        <button onclick="addNumber('8')">8</button>
+        <button onclick="addNumber('9')">9</button>
+        <button onclick="addOperator('*')">×</button>
+        
+        <button onclick="addNumber('4')">4</button>
+        <button onclick="addNumber('5')">5</button>
+        <button onclick="addNumber('6')">6</button>
+        <button onclick="addOperator('-')">-</button>
+        
+        <button onclick="addNumber('1')">1</button>
+        <button onclick="addNumber('2')">2</button>
+        <button onclick="addNumber('3')">3</button>
+        <button onclick="addOperator('+')">+</button>
+        
+        <button onclick="addNumber('0')">0</button>
+        <button onclick="addNumber('.')">.</button>
+        <button onclick="calculate()" class="col-span-2 btn-equal">=</button>
+    </div>
+
+    <button onclick="printBill()" class="btn-print">Print Bill (2-inch)</button>
+</div>
+
+<div id="printArea" style="display:none;"></div>
+
+<script src="script.js"></script>
+</body>
+</html>
