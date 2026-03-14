@@ -1,3 +1,4 @@
+/*
 let currentInput = "";
 let printLog = []; // Isme sara data save hoga print ke liye
 
@@ -65,6 +66,104 @@ function printBill() {
         </div>
         <div style="text-align:center; margin-top:10px;">
             DHANYAWAD!
+        </div>
+    `;
+
+    document.getElementById('printArea').innerHTML = content;
+    window.print();
+}
+*/
+let liveInput = "";
+let historyItems = [];
+let grandTotal = 0;
+let activeField = "live"; // Track which field to type in
+
+function setCurrentInput(field) {
+    activeField = field;
+    // Highlight effect for user to know which box is active
+    document.querySelectorAll('.input-group input').forEach(el => el.style.borderColor = "#444");
+    if(field !== 'live') document.getElementById(field).style.borderColor = "var(--primary-glow)";
+}
+
+function addNumber(num) {
+    if (activeField === "live") {
+        if (liveInput === "0") liveInput = num;
+        else liveInput += num;
+        document.getElementById('live-display').value = liveInput;
+    } else {
+        let field = document.getElementById(activeField);
+        field.value = field.value === "0" ? num : field.value + num;
+    }
+}
+
+function addOperator(op) {
+    if (activeField !== "live") { activeField = "live"; } // Switch to live on operator
+    if (liveInput === "") return;
+    liveInput += " " + op + " ";
+    document.getElementById('live-display').value = liveInput;
+}
+
+function backspace() {
+    if (activeField === "live") {
+        liveInput = liveInput.trim().slice(0, -1);
+        document.getElementById('live-display').value = liveInput || "0";
+    } else {
+        let field = document.getElementById(activeField);
+        field.value = field.value.slice(0, -1) || "0";
+    }
+}
+
+function calculate() {
+    try {
+        let expression = liveInput.replace('×', '*').replace('÷', '/');
+        let result = eval(expression);
+        
+        // Add to History and Update Total
+        historyItems.push(liveInput);
+        grandTotal += result;
+
+        // Update UI
+        document.getElementById('history-row').innerText = historyItems.join(", ");
+        document.getElementById('grand-total').innerText = grandTotal;
+        
+        // Reset Live Section (As requested)
+        liveInput = "";
+        document.getElementById('live-display').value = "0";
+        activeField = "live";
+    } catch (e) {
+        alert("Math Error");
+    }
+}
+
+function clearAll() {
+    liveInput = "";
+    historyItems = [];
+    grandTotal = 0;
+    document.getElementById('live-display').value = "0";
+    document.getElementById('history-row').innerText = "";
+    document.getElementById('grand-total').innerText = "0";
+    document.getElementById('prevDue').value = "0";
+    document.getElementById('received').value = "0";
+    activeField = "live";
+}
+
+function printBill() {
+    let prevDue = parseFloat(document.getElementById('prevDue').value) || 0;
+    let received = parseFloat(document.getElementById('received').value) || 0;
+    let netTotal = (grandTotal + prevDue) - received;
+
+    let content = `
+        <div style="text-align:center; font-family:monospace;">
+            <h3>STAR DIGITAL</h3>
+            ---------------------------<br>
+            ${historyItems.map(item => `<div>+ ${item}</div>`).join('')}
+            ---------------------------<br>
+            <b>Total: ${grandTotal}</b><br>
+            Pichla Udhar: ${prevDue}<br>
+            Aaj Jama: ${received}<br>
+            <b>Net Balance: ${netTotal}</b><br>
+            ---------------------------<br>
+            Dhanyawad!
         </div>
     `;
 
