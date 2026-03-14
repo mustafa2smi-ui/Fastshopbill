@@ -73,6 +73,7 @@ function printBill() {
     window.print();
 }
 */
+/*
 let liveInput = "";
 let historyItems = [];
 let grandTotal = 0;
@@ -167,6 +168,139 @@ function printBill() {
         </div>
     `;
 
+    document.getElementById('printArea').innerHTML = content;
+    window.print();
+}
+*/
+let liveInput = "";
+let historyItems = [];
+let grandTotal = 0;
+let activeField = "live";
+let lastState = null; // For Undo
+
+function updateNetBalance() {
+    let prevDue = parseFloat(document.getElementById('prevDue').value) || 0;
+    let received = parseFloat(document.getElementById('received').value) || 0;
+    let net = (grandTotal + prevDue) - received;
+    document.getElementById('net-result').innerText = "₹ " + net.toFixed(2);
+}
+
+function setCurrentInput(field) {
+    activeField = field;
+    document.querySelectorAll('.input-group input').forEach(el => el.style.borderColor = "#444");
+    document.getElementById(field).style.borderColor = "var(--primary-glow)";
+}
+
+function addNumber(num) {
+    if (activeField === "live") {
+        liveInput = (liveInput === "0") ? num : liveInput + num;
+        document.getElementById('live-display').value = liveInput;
+        // Auto Scroll Live
+        let el = document.getElementById('live-display');
+        el.scrollLeft = el.scrollWidth;
+    } else {
+        let field = document.getElementById(activeField);
+        field.value = (field.value === "0") ? num : field.value + num;
+        updateNetBalance();
+    }
+}
+
+function addOperator(op) {
+    activeField = "live";
+    if (liveInput === "") return;
+    liveInput += " " + op + " ";
+    document.getElementById('live-display').value = liveInput;
+}
+
+function calculate() {
+    try {
+        if (liveInput === "") return;
+        let expression = liveInput.replace('×', '*').replace('÷', '/');
+        let result = eval(expression);
+        
+        historyItems.push(liveInput);
+        grandTotal += result;
+
+        document.getElementById('history-row').innerText = historyItems.join(", ");
+        document.getElementById('grand-total').innerText = grandTotal.toFixed(2);
+        
+        // Auto Scroll History
+        let hist = document.getElementById('hist-scroll');
+        hist.scrollLeft = hist.scrollWidth;
+
+        liveInput = "";
+        document.getElementById('live-display').value = "0";
+        updateNetBalance();
+    } catch (e) {
+        alert("Calculation Error");
+    }
+}
+
+function clearAll() {
+    // Save state before clearing for Undo
+    lastState = {
+        history: [...historyItems],
+        total: grandTotal,
+        prev: document.getElementById('prevDue').value,
+        recv: document.getElementById('received').value
+    };
+    
+    liveInput = "";
+    historyItems = [];
+    grandTotal = 0;
+    document.getElementById('live-display').value = "0";
+    document.getElementById('history-row').innerText = "";
+    document.getElementById('grand-total').innerText = "0";
+    document.getElementById('prevDue').value = "0";
+    document.getElementById('received').value = "0";
+    updateNetBalance();
+}
+
+function undo() {
+    if (lastState) {
+        historyItems = lastState.history;
+        grandTotal = lastState.total;
+        document.getElementById('prevDue').value = lastState.prev;
+        document.getElementById('received').value = lastState.recv;
+        
+        document.getElementById('history-row').innerText = historyItems.join(", ");
+        document.getElementById('grand-total').innerText = grandTotal;
+        updateNetBalance();
+        lastState = null; // Use once
+    } else {
+        alert("Nothing to undo!");
+    }
+}
+
+function backspace() {
+    if (activeField === "live") {
+        liveInput = liveInput.trim().slice(0, -1);
+        document.getElementById('live-display').value = liveInput || "0";
+    } else {
+        let field = document.getElementById(activeField);
+        field.value = field.value.slice(0, -1) || "0";
+        updateNetBalance();
+    }
+}
+
+function printBill() {
+    let prevDue = parseFloat(document.getElementById('prevDue').value) || 0;
+    let received = parseFloat(document.getElementById('received').value) || 0;
+    let net = (grandTotal + prevDue) - received;
+
+    let content = `
+        <div style="width:58mm; font-family:monospace; font-size:12px;">
+            <center><b>STAR DIGITAL</b></center><br>
+            ${historyItems.map(h => `+ ${h}<br>`).join('')}
+            -------------------------<br>
+            Total: ${grandTotal.toFixed(2)}<br>
+            Pichla Udhar: ${prevDue.toFixed(2)}<br>
+            Aaj Jama: ${received.toFixed(2)}<br>
+            <b>NET BALANCE: ${net.toFixed(2)}</b><br>
+            -------------------------<br>
+            <center>Thank You!</center>
+        </div>
+    `;
     document.getElementById('printArea').innerHTML = content;
     window.print();
 }
