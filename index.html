@@ -1,3 +1,4 @@
+<!--
 <!DOCTYPE html>
 <html lang="hi">
 <head>
@@ -47,6 +48,69 @@
     </div>
 
     <button onclick="printBill()" class="btn-print">Print Bill (2-inch)</button>
+</div>
+
+<div id="printArea" style="display:none;"></div>
+
+<script src="script.js"></script>
+</body>
+</html>
+-->
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Retail Calculator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="calculator-container">
+    <div class="brand-name">STAR DIGITAL BILL</div>
+    
+    <div class="display-box">
+        <div class="display-row"><span class="label">History:</span> <span id="history-row"></span></div>
+        <div class="display-row"><span class="label">Total:</span> <span id="grand-total">0</span></div>
+        <div class="display-row live-row"><span class="label">Live:</span> <input type="text" id="live-display" value="0" readonly></div>
+    </div>
+
+    <div class="extra-inputs">
+        <div class="input-group">
+            <label>Pichla Udhar</label>
+            <input type="number" id="prevDue" value="0" onclick="setCurrentInput('prevDue')" readonly>
+        </div>
+        <div class="input-group">
+            <label>Aaj Jama</label>
+            <input type="number" id="received" value="0" onclick="setCurrentInput('received')" readonly>
+        </div>
+    </div>
+
+    <div class="buttons">
+        <button onclick="clearAll()" class="btn-clear">AC</button>
+        <button onclick="backspace()" class="btn-op">⌫</button>
+        <button onclick="addOperator('/')" class="btn-op">÷</button>
+        <button onclick="addOperator('*')" class="btn-op">×</button>
+        
+        <button onclick="addNumber('7')">7</button>
+        <button onclick="addNumber('8')">8</button>
+        <button onclick="addNumber('9')">9</button>
+        <button onclick="addOperator('-')" class="btn-op">-</button>
+        
+        <button onclick="addNumber('4')">4</button>
+        <button onclick="addNumber('5')">5</button>
+        <button onclick="addNumber('6')">6</button>
+        <button onclick="addOperator('+')" class="btn-op">+</button>
+        
+        <button onclick="addNumber('1')">1</button>
+        <button onclick="addNumber('2')">2</button>
+        <button onclick="addNumber('3')">3</button>
+        <button onclick="calculate()" class="btn-equal">=</button>
+        
+        <button onclick="addNumber('0')" class="col-span-2">0</button>
+        <button onclick="addNumber('.')">.</button>
+        <button onclick="printBill()" class="btn-print">PRINT</button>
+    </div>
 </div>
 
 <div id="printArea" style="display:none;"></div>
