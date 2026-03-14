@@ -24,6 +24,7 @@ button { padding: 15px; font-size: 1.2rem; border: none; border-radius: 5px; cur
     .print-line { border-bottom: 1px dashed #000; margin: 5px 0; }
 }
 */
+/*
 :root {
     --primary-glow: #00ffcc;
     --bg-dark: #1a1a1a;
@@ -41,12 +42,12 @@ body {
 }
 
 .calculator-container { 
-    width: 350px; /* Thoda bada size */
+    width: 350px; /* Thoda bada size *
     background: var(--bg-dark); 
     padding: 20px; 
     border: 2px solid var(--primary-glow);
-    border-radius: 25px; /* Curved edges */
-    box-shadow: 0 0 15px var(--primary-glow); /* Glow effect */
+    border-radius: 25px; /* Curved edges *
+    box-shadow: 0 0 15px var(--primary-glow); /* Glow effect *
     color: white; 
 }
 
@@ -86,3 +87,66 @@ button:active { transform: scale(0.95); box-shadow: 0 0 10px var(--primary-glow)
     #printArea, #printArea * { visibility: visible; }
     #printArea { position: absolute; left: 0; top: 0; width: 58mm; color: #000; font-size: 12px; }
 }
+*/
+:root {
+    --primary-glow: #00ffcc;
+    --bg-dark: #121212;
+}
+
+body { 
+    background: #000; margin: 0; color: white; 
+    font-family: sans-serif; overflow: hidden;
+}
+
+/* Header & Footer */
+.navbar {
+    position: fixed; top: 0; width: 100%; height: 50px;
+    background: #1a1a1a; display: flex; align-items: center;
+    justify-content: space-between; padding: 0 15px; border-bottom: 1px solid var(--primary-glow); z-index: 100;
+}
+.footer {
+    position: fixed; bottom: 0; width: 100%; height: 50px;
+    background: #1a1a1a; display: flex; justify-content: space-around;
+    align-items: center; border-top: 1px solid #333; font-size: 0.8rem;
+}
+.footer a { color: #888; text-decoration: none; }
+
+.main-wrapper {
+    padding: 60px 10px; /* Space for header/footer */
+    display: flex; justify-content: center; align-items: center; height: 80vh;
+}
+
+.calculator-container { 
+    width: 330px; background: var(--bg-dark); padding: 15px; 
+    border: 1.5px solid var(--primary-glow); border-radius: 20px;
+    box-shadow: 0 0 15px rgba(0, 255, 204, 0.2);
+}
+
+/* Auto-Scroll Displays */
+.display-row { 
+    font-size: 0.85rem; margin-bottom: 5px; 
+    overflow-x: auto; white-space: nowrap; scroll-behavior: smooth;
+}
+.display-row::-webkit-scrollbar { display: none; } /* Hide scrollbar */
+
+#live-display { 
+    background: none; border: none; color: #fff; font-size: 1.4rem; 
+    width: 80%; text-align: right; outline: none;
+}
+
+/* Grand Balance Box */
+.grand-balance-box {
+    background: #000; border: 1px solid var(--primary-glow);
+    padding: 10px; border-radius: 10px; margin-bottom: 10px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-weight: bold; color: var(--primary-glow); font-size: 1.1rem;
+}
+
+/* Keypad */
+.buttons { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+button { padding: 15px; font-size: 1rem; border-radius: 10px; border: none; background: #222; color: #fff; }
+button:active { background: var(--primary-glow); color: #000; }
+.btn-op { color: var(--primary-glow); }
+.btn-equal { background: var(--primary-glow); color: #000; grid-row: span 2; }
+.btn-undo { background: #333; color: #ffeb3b; font-size: 0.8rem; }
+.btn-clear { background: #400; color: #ff9999; }
