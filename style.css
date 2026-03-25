@@ -254,3 +254,24 @@ button:active { background: #dee2e6; transform: translateY(2px); }
 .item-entry-bar input {
     width: 100%; padding: 8px; border: 1.5px solid #007bff; border-radius: 10px; margin-bottom: 10px; text-align: center; outline: none;
 }
+#history-row {
+    display: inline-block;
+    min-width: 50px;
+    padding: 2px 5px;
+    border-radius: 4px;
+    transition: background 0.3s;
+    outline: none;
+}
+
+/* Jab user click karega toh halka highlight hoga */
+#history-row:focus {
+    background: #fffbe6; /* Halka peela color */
+    border-bottom: 2px dashed #ffc107;
+}
+
+/* History container ko scrollable rakhein */
+#hist-scroll {
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+}
