@@ -88,6 +88,7 @@ button:active { transform: scale(0.95); box-shadow: 0 0 10px var(--primary-glow)
     #printArea { position: absolute; left: 0; top: 0; width: 58mm; color: #000; font-size: 12px; }
 }
 */
+/*
 :root {
     --primary-glow: #00ffcc;
     --bg-dark: #121212;
@@ -98,7 +99,7 @@ body {
     font-family: sans-serif; overflow: hidden;
 }
 
-/* Header & Footer */
+/* Header & Footer *
 .navbar {
     position: fixed; top: 0; width: 100%; height: 50px;
     background: #1a1a1a; display: flex; align-items: center;
@@ -112,7 +113,7 @@ body {
 .footer a { color: #888; text-decoration: none; }
 
 .main-wrapper {
-    padding: 60px 10px; /* Space for header/footer */
+    padding: 60px 10px; /* Space for header/footer *
     display: flex; justify-content: center; align-items: center; height: 80vh;
 }
 
@@ -122,19 +123,19 @@ body {
     box-shadow: 0 0 15px rgba(0, 255, 204, 0.2);
 }
 
-/* Auto-Scroll Displays */
+/* Auto-Scroll Displays *
 .display-row { 
     font-size: 0.85rem; margin-bottom: 5px; 
     overflow-x: auto; white-space: nowrap; scroll-behavior: smooth;
 }
-.display-row::-webkit-scrollbar { display: none; } /* Hide scrollbar */
+.display-row::-webkit-scrollbar { display: none; } /* Hide scrollbar *
 
 #live-display { 
     background: none; border: none; color: #fff; font-size: 1.4rem; 
     width: 80%; text-align: right; outline: none;
 }
 
-/* Grand Balance Box */
+/* Grand Balance Box *
 .grand-balance-box {
     background: #000; border: 1px solid var(--primary-glow);
     padding: 10px; border-radius: 10px; margin-bottom: 10px;
@@ -142,7 +143,7 @@ body {
     font-weight: bold; color: var(--primary-glow); font-size: 1.1rem;
 }
 
-/* Keypad */
+/* Keypad *
 .buttons { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
 button { padding: 15px; font-size: 1rem; border-radius: 10px; border: none; background: #222; color: #fff; }
 button:active { background: var(--primary-glow); color: #000; }
@@ -150,3 +151,95 @@ button:active { background: var(--primary-glow); color: #000; }
 .btn-equal { background: var(--primary-glow); color: #000; grid-row: span 2; }
 .btn-undo { background: #333; color: #ffeb3b; font-size: 0.8rem; }
 .btn-clear { background: #400; color: #ff9999; }
+*/
+:root {
+    --primary-glow: #00ffcc;
+    --bg-dark: #121212;
+    --btn-bg: #222;
+}
+
+body { 
+    background: #000; margin: 0; color: white; 
+    font-family: 'Segoe UI', sans-serif; overflow: hidden;
+}
+
+/* Header & Footer */
+.navbar {
+    position: fixed; top: 0; width: 100%; height: 50px;
+    background: #1a1a1a; display: flex; align-items: center;
+    justify-content: space-between; padding: 0 15px; border-bottom: 1px solid var(--primary-glow); z-index: 100;
+}
+.navbar .logo { font-weight: bold; color: var(--primary-glow); letter-spacing: 1px; }
+
+.footer {
+    position: fixed; bottom: 0; width: 100%; height: 50px;
+    background: #1a1a1a; display: flex; justify-content: space-around;
+    align-items: center; border-top: 1px solid #333; font-size: 0.8rem;
+}
+.footer a { color: #888; text-decoration: none; }
+
+.main-wrapper {
+    padding: 60px 10px; 
+    display: flex; justify-content: center; align-items: center; height: 85vh;
+}
+
+.calculator-container { 
+    width: 330px; background: var(--bg-dark); padding: 18px; 
+    border: 2px solid var(--primary-glow); border-radius: 25px;
+    box-shadow: 0 0 15px rgba(0, 255, 204, 0.3);
+}
+
+/* Display Section */
+.display-box { 
+    background: #000; padding: 12px; border-radius: 15px; 
+    border: 1px solid #333; margin-bottom: 12px;
+}
+.display-row { 
+    font-size: 0.85rem; color: #888; margin-bottom: 4px; 
+    overflow-x: auto; white-space: nowrap; scroll-behavior: smooth;
+}
+.display-row::-webkit-scrollbar { display: none; }
+.label { color: var(--primary-glow); margin-right: 5px; }
+#grand-total { font-size: 1.1rem; color: #fff; font-weight: bold; }
+.live-row { border-top: 1px solid #222; padding-top: 5px; margin-top: 5px; }
+#live-display { background: none; border: none; color: #fff; font-size: 1.4rem; width: 80%; text-align: right; outline: none; }
+
+/* --- Ye raha aapka favourite Input Design --- */
+.extra-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+.input-group { display: flex; flex-direction: column; }
+.input-group label { font-size: 0.7rem; margin-bottom: 3px; color: #aaa; text-align: center; }
+.input-group input { 
+    background: #1a1a1a; border: 1px solid #444; color: #fff; 
+    padding: 10px; border-radius: 10px; text-align: center; 
+    font-size: 1rem; outline: none; transition: 0.3s;
+}
+/* Focus effect jab box active ho */
+.input-group input:focus { border-color: var(--primary-glow); box-shadow: 0 0 5px var(--primary-glow); }
+
+/* Net Balance Box */
+.grand-balance-box {
+    background: #000; border: 1px solid var(--primary-glow);
+    padding: 10px; border-radius: 12px; margin-bottom: 12px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-weight: bold; color: var(--primary-glow); font-size: 1.1rem;
+}
+
+/* Keypad */
+.buttons { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+button { 
+    padding: 16px; font-size: 1.1rem; border-radius: 12px; border: none; 
+    background: var(--btn-bg); color: #fff; cursor: pointer; transition: 0.2s;
+}
+button:active { transform: scale(0.95); background: var(--primary-glow); color: #000; }
+
+.btn-op { color: var(--primary-glow); }
+.btn-equal { background: var(--primary-glow); color: #000; font-weight: bold; grid-row: span 2; }
+.btn-undo { background: #333; color: #ffeb3b; font-size: 0.8rem; }
+.btn-clear { background: #400; color: #ff9999; }
+.btn-print { border: 1px solid var(--primary-glow); color: var(--primary-glow); font-weight: bold; }
+
+@media print {
+    body * { visibility: hidden; }
+    #printArea, #printArea * { visibility: visible; }
+    #printArea { position: absolute; left: 0; top: 0; width: 58mm; color: #000; font-size: 12px; }
+}
