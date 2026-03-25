@@ -179,6 +179,19 @@ let activeField = "live";
 let lastState = null; // For Undo
 let printerDevice = null;
 
+// Page load hote hi purani details bhar do
+window.onload = function() {
+    if(localStorage.getItem('shopName')) document.getElementById('set-shop-name').value = localStorage.getItem('shopName');
+    if(localStorage.getItem('shopContact')) document.getElementById('set-shop-contact').value = localStorage.getItem('shopContact');
+};
+
+function saveShopDetails() {
+    localStorage.setItem('shopName', document.getElementById('set-shop-name').value);
+    localStorage.setItem('shopContact', document.getElementById('set-shop-contact').value);
+    document.getElementById('shop-settings').style.display = 'none';
+    alert("Details Saved Locally!");
+}
+
 function updateNetBalance() {
     let prevDue = parseFloat(document.getElementById('prevDue').value) || 0;
     let received = parseFloat(document.getElementById('received').value) || 0;
@@ -346,7 +359,7 @@ async function printBill() {
         const server = await printerDevice.gatt.connect();
         const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
         const characteristic = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
-
+/*
         // Bill Data taiyar karna
         let prevDue = parseFloat(document.getElementById('prevDue').value) || 0;
         let received = parseFloat(document.getElementById('received').value) || 0;
@@ -367,7 +380,37 @@ async function printBill() {
         historyItems.forEach((item, index) => {
             esc += `${index + 1}. ${item}\n`;
         });
+*/
+        let sName = localStorage.getItem('shopName') || "STAR DIGITAL";
+    let sContact = localStorage.getItem('shopContact') || "98XXXXXXXX";
+    let cName = document.getElementById('set-cust-name').value || "Guest";
+    let cContact = document.getElementById('set-cust-contact').value || "N/A";
+    
+    let now = new Date();
+    let dateStr = now.toLocaleDateString();
+    let timeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
+    let esc = '\x1B\x40'; // Initialize
+    esc += '\x1B\x61\x01'; // Center Align
+    
+    // --- Shop Header ---
+    esc += '\x1B\x21\x30' + sName + '\n'; // Double size Shop Name
+    esc += '\x1B\x21\x00' + 'Mob: ' + sContact + '\n';
+    esc += '--------------------------------\n';
+    
+    // --- Date & Time ---
+    esc += '\x1B\x61\x00'; // Left Align
+    esc += `Date: ${dateStr}   Time: ${timeStr}\n`;
+    
+    // --- Customer Details ---
+    esc += `Cust: ${cName}\n`;
+    esc += `Contact: ${cContact}\n`;
+    esc += '--------------------------------\n';
+    
+    // --- Bill Items (Loop) ---
+    historyItems.forEach((item, index) => {
+        esc += `${index + 1}. ${item}\n`;
+    });
         esc += '--------------------------------\n';
         esc += `SUB TOTAL:      Rs.${grandTotal.toFixed(2)}\n`;
         esc += `PICHLA UDHAR:   Rs.${prevDue.toFixed(2)}\n`;
@@ -388,3 +431,42 @@ async function printBill() {
         alert("Printer connect nahi hua! Bluetooth on karein aur SRS588 select karein.");
     }
 }
+/*
+async function printBill() {
+    // ... (Bluetooth connection wala purana code yahan rahega) ...
+
+    // Dynamic Data uthayein
+    let sName = localStorage.getItem('shopName') || "STAR DIGITAL";
+    let sContact = localStorage.getItem('shopContact') || "98XXXXXXXX";
+    let cName = document.getElementById('set-cust-name').value || "Guest";
+    let cContact = document.getElementById('set-cust-contact').value || "N/A";
+    
+    let now = new Date();
+    let dateStr = now.toLocaleDateString();
+    let timeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+    let esc = '\x1B\x40'; // Initialize
+    esc += '\x1B\x61\x01'; // Center Align
+    
+    // --- Shop Header ---
+    esc += '\x1B\x21\x30' + sName + '\n'; // Double size Shop Name
+    esc += '\x1B\x21\x00' + 'Mob: ' + sContact + '\n';
+    esc += '--------------------------------\n';
+    
+    // --- Date & Time ---
+    esc += '\x1B\x61\x00'; // Left Align
+    esc += `Date: ${dateStr}   Time: ${timeStr}\n`;
+    
+    // --- Customer Details ---
+    esc += `Cust: ${cName}\n`;
+    esc += `Contact: ${cContact}\n`;
+    esc += '--------------------------------\n';
+    
+    // --- Bill Items (Loop) ---
+    historyItems.forEach((item, index) => {
+        esc += `${index + 1}. ${item}\n`;
+    });
+
+    // ... (Grand Total aur Footer wala logic wahi rahega) ...
+}
+*/
