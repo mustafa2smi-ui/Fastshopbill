@@ -212,7 +212,7 @@ function addOperator(op) {
     liveInput += " " + op + " ";
     document.getElementById('live-display').value = liveInput;
 }
-
+/*
 function calculate() {
     try {
         if (liveInput === "") return;
@@ -235,6 +235,24 @@ function calculate() {
     } catch (e) {
         alert("Calculation Error");
     }
+}
+*/
+function calculate() {
+    let nameInput = document.getElementById('item-name').value || "Item"; // Naam uthayein
+    let expression = liveInput;
+    let result = eval(expression.replace('×', '*').replace('÷', '/'));
+
+    // Naya Format: Name + Value
+    historyItems.push(`${nameInput}: ${expression} = ${result}`);
+
+    // UI Update karein
+    document.getElementById('history-row').innerText = historyItems.join(", ");
+    
+    // Clear karein
+    liveInput = "";
+    document.getElementById('item-name').value = ""; // Name box khali karein
+    document.getElementById('live-display').value = "0";
+    updateNetBalance();
 }
 
 function clearAll() {
