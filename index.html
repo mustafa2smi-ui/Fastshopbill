@@ -12,6 +12,16 @@
     <div class="menu-icon" onclick="toggleMenu()">☰</div>
     <div class="logo">STAR DIGITAL</div>
     <div></div> </header>
+<div id="shop-settings" style="display:none; background:#fff; padding:15px; border:1px solid #ddd; border-radius:10px; margin-bottom:10px; color:#333;">
+    <h4 style="margin:0 0 10px 0;">Shop & Header Settings</h4>
+    <input type="text" id="set-shop-name" placeholder="Apni Shop ka Naam" style="width:90%; margin-bottom:5px; padding:8px; border-radius:5px; border:1px solid #ccc;">
+    <input type="text" id="set-shop-contact" placeholder="Shop Mobile Number" style="width:90%; margin-bottom:5px; padding:8px; border-radius:5px; border:1px solid #ccc;">
+    <input type="text" id="set-cust-name" placeholder="Customer ka Naam" style="width:90%; margin-bottom:5px; padding:8px; border-radius:5px; border:1px solid #ccc;">
+    <input type="text" id="set-cust-contact" placeholder="Customer Mobile Number" style="width:90%; margin-bottom:5px; padding:8px; border-radius:5px; border:1px solid #ccc;">
+    <button onclick="saveShopDetails()" style="background:#28a745; color:#fff; border:none; padding:8px 15px; border-radius:5px; width:100%;">Save Details</button>
+</div>
+
+<button onclick="document.getElementById('shop-settings').style.display='block'" style="background:none; border:none; color:var(--primary-blue); font-size:0.8rem; cursor:pointer; margin-bottom:10px;">⚙️ Edit Shop/Customer Info</button>
 
 <div class="main-wrapper">
     <div class="calculator-container">
