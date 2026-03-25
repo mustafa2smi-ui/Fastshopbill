@@ -472,6 +472,7 @@ async function printBill() {
     // ... (Grand Total aur Footer wala logic wahi rahega) ...
 }
 */
+/*
 let liveInput = "";
 let historyItems = [];
 let grandTotal = 0;
@@ -652,5 +653,183 @@ async function printBill() {
         alert("Printing...");
     } catch (error) {
         alert("Printer error! Bluetooth Check karein.");
+    }
+}
+*/
+let liveInput = "";
+let historyItems = [];
+let grandTotal = 0;
+let activeField = "live";
+let printerDevice = null;
+
+// 1. Page Load Logic
+window.onload = function() {
+    if(localStorage.getItem('shopName')) document.getElementById('set-shop-name').value = localStorage.getItem('shopName');
+    if(localStorage.getItem('shopContact')) document.getElementById('set-shop-contact').value = localStorage.getItem('shopContact');
+    updateNetBalance();
+};
+
+// 2. Settings Modal Logic
+function toggleSettings() {
+    const modal = document.getElementById('shop-settings');
+    if (modal.style.display === "flex") {
+        modal.style.display = "none";
+    } else {
+        modal.style.display = "flex";
+    }
+}
+
+function saveShopDetails() {
+    localStorage.setItem('shopName', document.getElementById('set-shop-name').value);
+    localStorage.setItem('shopContact', document.getElementById('set-shop-contact').value);
+    toggleSettings();
+    alert("Settings Saved!");
+}
+
+// 3. Calculation & Display Logic
+function updateNetBalance() {
+    let prevDue = parseFloat(document.getElementById('prevDue').value) || 0;
+    let received = parseFloat(document.getElementById('received').value) || 0;
+    let net = (grandTotal + prevDue) - received;
+    document.getElementById('net-result').innerText = "₹ " + net.toFixed(2);
+}
+
+function setCurrentInput(field) {
+    activeField = field;
+    document.querySelectorAll('.input-group input').forEach(el => el.style.borderColor = "#ccc");
+    document.getElementById(field).style.borderColor = "#007bff";
+}
+
+function addNumber(num) {
+    if (activeField === "live") {
+        liveInput = (liveInput === "0") ? num : liveInput + num;
+        document.getElementById('live-display').value = liveInput;
+    } else {
+        let field = document.getElementById(activeField);
+        field.value = (field.value === "0") ? num : field.value + num;
+        updateNetBalance();
+    }
+}
+
+function addOperator(op) {
+    activeField = "live";
+    if (liveInput === "" || liveInput === "0") return;
+    liveInput += " " + op + " ";
+    document.getElementById('live-display').value = liveInput;
+}
+
+function calculate() {
+    try {
+        if (liveInput === "" || liveInput === "0") return;
+        
+        let nameInput = document.getElementById('item-name').value || "Item";
+        let expression = liveInput.trim();
+        // Replace visual ops with math ops
+        let mathExp = expression.replace(/×/g, '*').replace(/÷/g, '/');
+        let result = eval(mathExp);
+
+        if (isNaN(result)) throw "Error";
+
+        // Update Total & History
+        grandTotal += result;
+        historyItems.push(`${nameInput}: ${expression} = ${result.toFixed(2)}`);
+
+        // Update UI
+        document.getElementById('history-row').innerText = historyItems.join(" | ");
+        document.getElementById('grand-total').innerText = grandTotal.toFixed(2);
+        
+        // Clear for next
+        liveInput = "";
+        document.getElementById('live-display').value = "0";
+        document.getElementById('item-name').value = "";
+        updateNetBalance();
+
+    } catch (e) {
+        alert("Sahi format likhein (e.g. 10 + 20)");
+        liveInput = "";
+        document.getElementById('live-display').value = "0";
+    }
+}
+
+function backspace() {
+    if (activeField === "live") {
+        liveInput = liveInput.trim().slice(0, -1);
+        document.getElementById('live-display').value = liveInput || "0";
+    } else {
+        let field = document.getElementById(activeField);
+        field.value = field.value.slice(0, -1) || "0";
+        updateNetBalance();
+    }
+}
+
+function clearAll() {
+    if(!confirm("Kya aap pura bill saaf karna chahte hain?")) return;
+    liveInput = "";
+    historyItems = [];
+    grandTotal = 0;
+    document.getElementById('live-display').value = "0";
+    document.getElementById('history-row').innerText = "";
+    document.getElementById('grand-total').innerText = "0";
+    document.getElementById('prevDue').value = "0";
+    document.getElementById('received').value = "0";
+    document.getElementById('item-name').value = "";
+    updateNetBalance();
+}
+
+// 4. Printer Logic
+async function printBill() {
+    if (historyItems.length === 0) return alert("Pehle item add karein!");
+
+    try {
+        if (!printerDevice) {
+            printerDevice = await navigator.bluetooth.requestDevice({
+                filters: [{ services: ['000018f0-0000-1000-8000-00805f9b34fb'] }, { namePrefix: 'SRS' }, { namePrefix: 'Bluetooth' }],
+                optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb']
+            });
+        }
+
+        const server = await printerDevice.gatt.connect();
+        const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
+        const characteristic = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
+
+        let sName = localStorage.getItem('shopName') || "STAR DIGITAL";
+        let sContact = localStorage.getItem('shopContact') || "98XXXXXXXX";
+        let cName = document.getElementById('set-cust-name').value || "Guest";
+        let cContact = document.getElementById('set-cust-contact').value || "N/A";
+        let prevDue = parseFloat(document.getElementById('prevDue').value) || 0;
+        let received = parseFloat(document.getElementById('received').value) || 0;
+        let net = (grandTotal + prevDue) - received;
+        
+        let now = new Date();
+        let dateStr = now.toLocaleDateString();
+        let timeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+        let esc = '\x1B\x40'; 
+        esc += '\x1B\x61\x01'; 
+        esc += '\x1B\x21\x30' + sName + '\n'; 
+        esc += '\x1B\x21\x00' + 'Mob: ' + sContact + '\n';
+        esc += '--------------------------------\n';
+        esc += '\x1B\x61\x00'; 
+        esc += `Date: ${dateStr}  Time: ${timeStr}\n`;
+        esc += `Cust: ${cName}\n`;
+        esc += `Contact: ${cContact}\n`;
+        esc += '--------------------------------\n';
+        
+        historyItems.forEach((item, index) => {
+            esc += `${index + 1}. ${item}\n`;
+        });
+
+        esc += '--------------------------------\n';
+        esc += `SUB TOTAL:      Rs.${grandTotal.toFixed(2)}\n`;
+        esc += `PICHLA UDHAR:   Rs.${prevDue.toFixed(2)}\n`;
+        esc += `AAJ JAMA:       Rs.${received.toFixed(2)}\n`;
+        esc += '--------------------------------\n';
+        esc += '\x1B\x21\x10' + `NET BALANCE:    Rs.${net.toFixed(2)}\n` + '\x1B\x21\x00';
+        esc += '\x1B\x61\x01' + '\nDHANYAWAD! VISIT AGAIN\n\n\n\n';
+
+        const encoder = new TextEncoder();
+        await characteristic.writeValue(encoder.encode(esc));
+    } catch (error) {
+        alert("Bluetooth Printer Connect Nahi Hua!");
     }
 }
