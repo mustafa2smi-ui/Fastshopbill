@@ -177,6 +177,7 @@ let historyItems = [];
 let grandTotal = 0;
 let activeField = "live";
 let lastState = null; // For Undo
+let printerDevice = null;
 
 function updateNetBalance() {
     let prevDue = parseFloat(document.getElementById('prevDue').value) || 0;
@@ -282,7 +283,7 @@ function backspace() {
         updateNetBalance();
     }
 }
-
+/*
 function printBill() {
     let prevDue = parseFloat(document.getElementById('prevDue').value) || 0;
     let received = parseFloat(document.getElementById('received').value) || 0;
@@ -303,4 +304,69 @@ function printBill() {
     `;
     document.getElementById('printArea').innerHTML = content;
     window.print();
+}
+*/
+
+async function printBill() {
+    if (historyItems.length === 0 && liveInput === "") {
+        return alert("Pehle calculation karein!");
+    }
+
+    try {
+        // Bluetooth Connection Logic
+        if (!printerDevice) {
+            printerDevice = await navigator.bluetooth.requestDevice({
+                filters: [
+                    { services: ['000018f0-0000-1000-8000-00805f9b34fb'] }, 
+                    { namePrefix: 'SRS' }, 
+                    { namePrefix: 'Bluetooth' }
+                ],
+                optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb']
+            });
+        }
+
+        const server = await printerDevice.gatt.connect();
+        const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
+        const characteristic = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
+
+        // Bill Data taiyar karna
+        let prevDue = parseFloat(document.getElementById('prevDue').value) || 0;
+        let received = parseFloat(document.getElementById('received').value) || 0;
+        let net = (grandTotal + prevDue) - received;
+        let date = new Date().toLocaleString();
+
+        // ESC/POS Commands (Thermal Printer ki bhasha)
+        let esc = '\x1B\x40'; // Initialize printer
+        esc += '\x1B\x61\x01'; // Center Align
+        esc += '\x1B\x21\x30' + 'STAR DIGITAL\n'; // Double height/width text
+        esc += '\x1B\x21\x00'; // Normal text
+        esc += '--------------------------------\n';
+        esc += '\x1B\x61\x00'; // Left Align
+        esc += `Date: ${date}\n`;
+        esc += '--------------------------------\n';
+        
+        // Items list (History) print karna
+        historyItems.forEach((item, index) => {
+            esc += `${index + 1}. ${item}\n`;
+        });
+
+        esc += '--------------------------------\n';
+        esc += `SUB TOTAL:      Rs.${grandTotal.toFixed(2)}\n`;
+        esc += `PICHLA UDHAR:   Rs.${prevDue.toFixed(2)}\n`;
+        esc += `AAJ JAMA:       Rs.${received.toFixed(2)}\n`;
+        esc += '--------------------------------\n';
+        esc += '\x1B\x21\x10'; // Bold text
+        esc += `NET BALANCE:    Rs.${net.toFixed(2)}\n`;
+        esc += '\x1B\x21\x00'; // Normal
+        esc += '--------------------------------\n';
+        esc += '\x1B\x61\x01' + '\nDHANYAWAD! VISIT AGAIN\n\n\n\n';
+
+        const encoder = new TextEncoder();
+        await characteristic.writeValue(encoder.encode(esc));
+        
+        alert("Printing Successful!");
+    } catch (error) {
+        console.log(error);
+        alert("Printer connect nahi hua! Bluetooth on karein aur SRS588 select karein.");
+    }
 }
