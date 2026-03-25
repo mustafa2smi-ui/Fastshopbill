@@ -172,6 +172,7 @@ function printBill() {
     window.print();
 }
 */
+/*
 let liveInput = "";
 let historyItems = [];
 let grandTotal = 0;
