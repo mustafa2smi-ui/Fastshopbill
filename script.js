@@ -656,6 +656,7 @@ async function printBill() {
     }
 }
 */
+/*
 let liveInput = "";
 let historyItems = [];
 let grandTotal = 0;
@@ -832,4 +833,275 @@ async function printBill() {
     } catch (error) {
         alert("Bluetooth Printer Connect Nahi Hua!");
     }
+}
+*/
+let liveInput = "";
+let historyItems = [];
+let grandTotal = 0;
+let activeField = "live";
+let lastState = null; // Undo ke liye
+let printerDevice = null;
+
+// 1. Save Bill to Local History (For Reloading later)
+function saveToHistory() {
+    let billData = {
+        id: Date.now(),
+        date: new Date().toLocaleString(),
+        items: [...historyItems],
+        total: grandTotal,
+        prev: document.getElementById('prevDue').value,
+        recv: document.getElementById('received').value,
+        shop: localStorage.getItem('shopName')
+    };
+    let allBills = JSON.parse(localStorage.getItem('allBills') || "[]");
+    allBills.unshift(billData); // Naya bill upar rakhein
+    localStorage.setItem('allBills', JSON.stringify(allBills.slice(0, 20))); // Sirf last 20 bills save karein
+}
+
+// 2. Undo Function
+function undo() {
+    if (lastState) {
+        historyItems = [...lastState.history];
+        grandTotal = lastState.total;
+        document.getElementById('history-row').innerText = historyItems.join(" | ");
+        document.getElementById('grand-total').innerText = grandTotal.toFixed(2);
+        updateNetBalance();
+        lastState = null; // Ek hi baar undo hoga
+        alert("Pichli entry wapas le li gayi!");
+    } else {
+        alert("Undo karne ke liye kuch nahi hai!");
+    }
+}
+
+// 3. Calculate (With Undo Support)
+function calculate() {
+    try {
+        if (liveInput === "" || liveInput === "0") return;
+        
+        // Undo ke liye purana data save karein
+        lastState = { history: [...historyItems], total: grandTotal };
+
+        let nameInput = document.getElementById('item-name').value || "Item";
+        let expression = liveInput.trim();
+        let mathExp = expression.replace(/×/g, '*').replace(/÷/g, '/');
+        let result = eval(mathExp);
+
+        grandTotal += result;
+        // Text bachane ke liye format chota rakha hai
+        historyItems.push(`${nameInput}:${result.toFixed(0)}`);
+
+        document.getElementById('history-row').innerText = historyItems.join("|");
+        document.getElementById('grand-total').innerText = grandTotal.toFixed(2);
+        
+        liveInput = "";
+        document.getElementById('live-display').value = "0";
+        document.getElementById('item-name').value = "";
+        updateNetBalance();
+    } catch (e) { alert("Format Error!"); }
+}
+
+// 4. CSV Export
+function exportCSV() {
+    if (historyItems.length === 0) return alert("Khaali bill export nahi ho sakta");
+    let csvContent = "data:text/csv;charset=utf-8,Item,Amount\n";
+    historyItems.forEach(line => {
+        csvContent += line.replace(':', ',') + "\n";
+    });
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `Bill_${Date.now()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+}
+
+// 5. Optimized Small Print Logic
+async function printBill() {
+    if (historyItems.length === 0) return alert("Pehle Add karein!");
+    
+    // Bill save kar lo taaki baad mein reload ho sake
+    saveToHistory();
+
+    try {
+        if (!printerDevice) {
+            printerDevice = await navigator.bluetooth.requestDevice({
+                filters: [{ services: ['000018f0-0000-1000-8000-00805f9b34fb'] }, { namePrefix: 'SRS' }],
+                optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb']
+            });
+        }
+        const server = await printerDevice.gatt.connect();
+        const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
+        const char = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
+
+        let sName = localStorage.getItem('shopName') || "STAR DIGITAL";
+        let prevDue = parseFloat(document.getElementById('prevDue').value) || 0;
+        let received = parseFloat(document.getElementById('received').value) || 0;
+        let net = (grandTotal + prevDue) - received;
+
+        // SMALL FONT & COMPACT SPACE LOGIC
+        let esc = '\x1B\x40'; // Init
+        esc += '\x1B\x61\x01'; // Center
+        esc += '\x1B\x21\x10' + sName + '\n'; // Medium Bold
+        esc += '\x1B\x21\x01'; // SMALL FONT MODE (If supported)
+        esc += '--------------------------\n'; // Choti line
+        
+        esc += '\x1B\x61\x00'; // Left
+        historyItems.forEach((item, i) => {
+            esc += `${i+1}.${item}\n`; // Ek line mein item aur price
+        });
+
+        esc += '--------------------------\n';
+        esc += `Total: Rs.${grandTotal.toFixed(0)}\n`;
+        esc += `Due:   Rs.${prevDue.toFixed(0)}\n`;
+        esc += `Paid:  Rs.${received.toFixed(0)}\n`;
+        esc += '\x1B\x21\x08'; // Bold
+        esc += `NET:   Rs.${net.toFixed(0)}\n`;
+        esc += '\x1B\x21\x01'; // Back to Small
+        esc += '--------------------------\n';
+        esc += '\x1B\x61\x01' + 'DHANYAWAD\n\n\n';
+
+        await char.writeValue(new TextEncoder().encode(esc));
+    } catch (e) { alert("Printer Error"); }
+}
+function clearAll() {
+    if(!confirm("Kya aap pura bill saaf karna chahte hain?")) return;
+    liveInput = "";
+    historyItems = [];
+    grandTotal = 0;
+    document.getElementById('live-display').value = "0";
+    document.getElementById('history-row').innerText = "";
+    document.getElementById('grand-total').innerText = "0";
+    document.getElementById('prevDue').value = "0";
+    document.getElementById('received').value = "0";
+    document.getElementById('item-name').value = "";
+    updateNetBalance();
+}
+function backspace() {
+    if (activeField === "live") {
+        liveInput = liveInput.trim().slice(0, -1);
+        document.getElementById('live-display').value = liveInput || "0";
+    } else {
+        let field = document.getElementById(activeField);
+        field.value = field.value.slice(0, -1) || "0";
+        updateNetBalance();
+    }
+}
+// 1. Page Load Logic
+window.onload = function() {
+    if(localStorage.getItem('shopName')) document.getElementById('set-shop-name').value = localStorage.getItem('shopName');
+    if(localStorage.getItem('shopContact')) document.getElementById('set-shop-contact').value = localStorage.getItem('shopContact');
+    updateNetBalance();
+};
+
+// 2. Settings Modal Logic
+function toggleSettings() {
+    const modal = document.getElementById('shop-settings');
+    if (modal.style.display === "flex") {
+        modal.style.display = "none";
+    } else {
+        modal.style.display = "flex";
+    }
+}
+
+function saveShopDetails() {
+    localStorage.setItem('shopName', document.getElementById('set-shop-name').value);
+    localStorage.setItem('shopContact', document.getElementById('set-shop-contact').value);
+    toggleSettings();
+    alert("Settings Saved!");
+}
+
+// 3. Calculation & Display Logic
+function updateNetBalance() {
+    let prevDue = parseFloat(document.getElementById('prevDue').value) || 0;
+    let received = parseFloat(document.getElementById('received').value) || 0;
+    let net = (grandTotal + prevDue) - received;
+    document.getElementById('net-result').innerText = "₹ " + net.toFixed(2);
+}
+
+function setCurrentInput(field) {
+    activeField = field;
+    document.querySelectorAll('.input-group input').forEach(el => el.style.borderColor = "#ccc");
+    document.getElementById(field).style.borderColor = "#007bff";
+}
+
+function addNumber(num) {
+    if (activeField === "live") {
+        liveInput = (liveInput === "0") ? num : liveInput + num;
+        document.getElementById('live-display').value = liveInput;
+    } else {
+        let field = document.getElementById(activeField);
+        field.value = (field.value === "0") ? num : field.value + num;
+        updateNetBalance();
+    }
+}
+
+function addOperator(op) {
+    activeField = "live";
+    if (liveInput === "" || liveInput === "0") return;
+    liveInput += " " + op + " ";
+    document.getElementById('live-display').value = liveInput;
+}
+// 1. History Row mein direct edit karne ka function
+function makeEditable() {
+    const historyRow = document.getElementById('history-row');
+    
+    // Har item ko click-able banayein
+    historyRow.addEventListener('input', function() {
+        recalculateFromHistory(); // Jaise hi text badle, total update ho jaye
+    });
+}
+
+// 2. Pura Total phir se calculate karna (History se data nikaal kar)
+function recalculateFromHistory() {
+    const historyText = document.getElementById('history-row').innerText;
+    if (!historyText) {
+        grandTotal = 0;
+    } else {
+        // "Item:100 | Item:200" mein se numbers nikaalna
+        const parts = historyText.split('|');
+        let newTotal = 0;
+        
+        parts.forEach(p => {
+            let val = p.split('=')[1] || p.split(':')[1] || "0";
+            newTotal += parseFloat(val) || 0;
+        });
+        grandTotal = newTotal;
+    }
+    
+    // UI Update karein
+    document.getElementById('grand-total').innerText = grandTotal.toFixed(2);
+    updateNetBalance();
+}
+
+// 3. Updated Calculate Function (Taaki items editable banein)
+function calculate() {
+    try {
+        if (liveInput === "" || liveInput === "0") return;
+        lastState = { history: [...historyItems], total: grandTotal };
+
+        let nameInput = document.getElementById('item-name').value || "Item";
+        let expression = liveInput.trim();
+        let mathExp = expression.replace(/×/g, '*').replace(/÷/g, '/');
+        let result = eval(mathExp);
+
+        grandTotal += result;
+        
+        // Naya Item Array mein aur UI mein
+        let newItem = `${nameInput}:${result.toFixed(0)}`;
+        historyItems.push(newItem);
+
+        // History Row ko update karna
+        const hr = document.getElementById('history-row');
+        hr.innerText = historyItems.join(" | ");
+        hr.setAttribute('contenteditable', 'true'); // Isse user touch karke edit kar payega
+        
+        document.getElementById('grand-total').innerText = grandTotal.toFixed(2);
+        
+        liveInput = "";
+        document.getElementById('live-display').value = "0";
+        document.getElementById('item-name').value = "";
+        updateNetBalance();
+        
+        makeEditable(); // Edit listener active karein
+    } catch (e) { alert("Format Error!"); }
 }
