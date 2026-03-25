@@ -1112,7 +1112,8 @@ let liveInput = "";
 let historyItems = []; 
 let grandTotal = 0;
 let activeField = "live";
-let lastState = null;
+/*let lastState = null;*/
+let undoStack = []; // Multiple Undo ke liye stack
 let printerDevice = null;
 
 window.onload = function() {
@@ -1139,7 +1140,7 @@ function updateNetBalance() {
     let net = (grandTotal + prevDue) - received;
     document.getElementById('net-result').innerText = "₹ " + net.toFixed(2);
 }
-
+/*
 // --- Undo Function Fix ---
 function undo() {
     if (lastState && historyItems.length > 0) {
@@ -1154,7 +1155,8 @@ function undo() {
         alert("Pehle kuch add karein!");
     }
 }
-
+*/
+/*
 function calculate() {
     try {
         if (liveInput === "" || liveInput === "0") return;
@@ -1182,7 +1184,7 @@ function calculate() {
         updateNetBalance();
     } catch (e) { alert("Format Error!"); }
 }
-
+*/
 // --- Optimized Printer Logic (Sari Details ke Saath) ---
 async function printBill() {
     if (historyItems.length === 0) return alert("Pehle items add karein!");
@@ -1321,3 +1323,97 @@ function backspace() {
         updateNetBalance();
     }
 }
+/*1324*/
+/*
+let liveInput = "";
+let historyItems = []; 
+let grandTotal = 0;
+let activeField = "live";
+let undoStack = []; // Multiple Undo ke liye stack
+let printerDevice = null;
+*/
+// --- Undo Function (Improved) ---
+function undo() {
+    if (undoStack.length > 0) {
+        // Pichli state ko stack se nikaalein
+        let prevState = undoStack.pop();
+        
+        historyItems = prevState.history;
+        grandTotal = prevState.total;
+        
+        // UI Update
+        document.getElementById('history-row').innerText = historyItems.join(" | ");
+        document.getElementById('grand-total').innerText = grandTotal.toFixed(2);
+        updateNetBalance();
+    } else {
+        alert("Aur piche nahi ja sakte!");
+    }
+}
+
+// --- Calculation with Undo & Edit Support ---
+function calculate() {
+    try {
+        if (liveInput === "" || liveInput === "0") return;
+        
+        // Current state ko stack mein daalein (Undo ke liye)
+        undoStack.push({
+            history: [...historyItems],
+            total: grandTotal
+        });
+
+        let nameInput = document.getElementById('item-name').value || "Item";
+        let expression = liveInput.trim();
+        let mathExp = expression.replace(/×/g, '*').replace(/÷/g, '/');
+        let result = eval(mathExp);
+
+        grandTotal += result;
+        
+        let newItem = `${nameInput}: ${expression} = ${result.toFixed(2)}`;
+        historyItems.push(newItem);
+
+        // History Update aur Edit Mode Enable
+        const hr = document.getElementById('history-row');
+        hr.innerText = historyItems.join(" | ");
+        
+        // Edit Mode Active: contenteditable aur click listener
+        hr.contentEditable = "true";
+        hr.onclick = function() { this.focus(); }; 
+
+        document.getElementById('grand-total').innerText = grandTotal.toFixed(2);
+        
+        liveInput = "";
+        document.getElementById('live-display').value = "0";
+        document.getElementById('item-name').value = "";
+        updateNetBalance();
+        
+        // Auto-scroll history to end
+        let hs = document.getElementById('hist-scroll');
+        hs.scrollLeft = hs.scrollWidth;
+
+    } catch (e) { 
+        alert("Sahi format likhein!"); 
+    }
+}
+
+// --- Recalculate if User Edits History ---
+// Jab user history mein kuch badle aur bahar click kare (blur), tab ye chalega
+document.getElementById('history-row').addEventListener('blur', function() {
+    let text = this.innerText;
+    if(!text) {
+        historyItems = [];
+        grandTotal = 0;
+    } else {
+        // Naya text array mein save karein
+        historyItems = text.split(" | ").filter(item => item.trim() !== "");
+        
+        // Total phir se calculate karein
+        let newTotal = 0;
+        historyItems.forEach(item => {
+            let valPart = item.split('=')[1];
+            if(valPart) newTotal += parseFloat(valPart.trim());
+        });
+        grandTotal = newTotal;
+    }
+    document.getElementById('grand-total').innerText = grandTotal.toFixed(2);
+    updateNetBalance();
+});
