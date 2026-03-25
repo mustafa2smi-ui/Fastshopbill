@@ -872,7 +872,7 @@ function undo() {
         alert("Undo karne ke liye kuch nahi hai!");
     }
 }
-
+/*
 // 3. Calculate (With Undo Support)
 function calculate() {
     try {
@@ -899,7 +899,7 @@ function calculate() {
         updateNetBalance();
     } catch (e) { alert("Format Error!"); }
 }
-
+*/
 // 4. CSV Export
 function exportCSV() {
     if (historyItems.length === 0) return alert("Khaali bill export nahi ho sakta");
