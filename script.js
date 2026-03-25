@@ -250,6 +250,7 @@ function calculate() {
     }
 }
 */
+/*
 function calculate() {
     let nameInput = document.getElementById('item-name').value || "Item"; // Naam uthayein
     let expression = liveInput;
@@ -336,7 +337,7 @@ function printBill() {
     document.getElementById('printArea').innerHTML = content;
     window.print();
 }
-*/
+*
 
 async function printBill() {
     if (historyItems.length === 0 && liveInput === "") {
@@ -380,7 +381,7 @@ async function printBill() {
         historyItems.forEach((item, index) => {
             esc += `${index + 1}. ${item}\n`;
         });
-*/
+*
         let sName = localStorage.getItem('shopName') || "STAR DIGITAL";
     let sContact = localStorage.getItem('shopContact') || "98XXXXXXXX";
     let cName = document.getElementById('set-cust-name').value || "Guest";
@@ -470,3 +471,185 @@ async function printBill() {
     // ... (Grand Total aur Footer wala logic wahi rahega) ...
 }
 */
+let liveInput = "";
+let historyItems = [];
+let grandTotal = 0;
+let activeField = "live";
+let lastState = null; 
+let printerDevice = null;
+
+// Page load par settings load karein
+window.onload = function() {
+    if(localStorage.getItem('shopName')) document.getElementById('set-shop-name').value = localStorage.getItem('shopName');
+    if(localStorage.getItem('shopContact')) document.getElementById('set-shop-contact').value = localStorage.getItem('shopContact');
+};
+
+// Settings Modal ko kholne/band karne ke liye
+function toggleSettings() {
+    const modal = document.getElementById('shop-settings');
+    modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex';
+}
+
+function saveShopDetails() {
+    localStorage.setItem('shopName', document.getElementById('set-shop-name').value);
+    localStorage.setItem('shopContact', document.getElementById('set-shop-contact').value);
+    toggleSettings(); // Close modal
+    alert("Shop Details Saved!");
+}
+
+function updateNetBalance() {
+    let prevDue = parseFloat(document.getElementById('prevDue').value) || 0;
+    let received = parseFloat(document.getElementById('received').value) || 0;
+    let net = (grandTotal + prevDue) - received;
+    document.getElementById('net-result').innerText = "₹ " + net.toFixed(2);
+}
+
+function setCurrentInput(field) {
+    activeField = field;
+    // Input boxes highlight logic
+    document.querySelectorAll('.input-group input').forEach(el => el.style.borderColor = "#ccc");
+    document.getElementById(field).style.borderColor = "#007bff";
+}
+
+function addNumber(num) {
+    if (activeField === "live") {
+        liveInput = (liveInput === "0") ? num : liveInput + num;
+        document.getElementById('live-display').value = liveInput;
+    } else {
+        let field = document.getElementById(activeField);
+        field.value = (field.value === "0") ? num : field.value + num;
+        updateNetBalance();
+    }
+}
+
+function addOperator(op) {
+    activeField = "live";
+    if (liveInput === "") return;
+    // Space is important for clean display
+    liveInput += " " + op + " ";
+    document.getElementById('live-display').value = liveInput;
+}
+
+function calculate() {
+    try {
+        if (liveInput === "" || liveInput === "0") return;
+        
+        let nameInput = document.getElementById('item-name').value || "Item";
+        let expression = liveInput.trim();
+        // Replace visual operators with math operators
+        let mathExpression = expression.replace(/×/g, '*').replace(/÷/g, '/');
+        let result = eval(mathExpression);
+
+        if (isNaN(result)) throw "Error";
+
+        // Update Total and History
+        grandTotal += result;
+        historyItems.push(`${nameInput}: ${expression} = ${result.toFixed(2)}`);
+
+        // UI Updates
+        document.getElementById('history-row').innerText = historyItems.join(" | ");
+        document.getElementById('grand-total').innerText = grandTotal.toFixed(2);
+        
+        // Auto-scroll history
+        let histScroll = document.getElementById('hist-scroll');
+        histScroll.scrollLeft = histScroll.scrollWidth;
+
+        // Reset for next entry
+        liveInput = "";
+        document.getElementById('live-display').value = "0";
+        document.getElementById('item-name').value = ""; // Clear name
+        updateNetBalance();
+
+    } catch (e) {
+        alert("Sahi calculation likhein!");
+        liveInput = "";
+        document.getElementById('live-display').value = "0";
+    }
+}
+
+function clearAll() {
+    if(!confirm("Pura bill saaf karein?")) return;
+    liveInput = "";
+    historyItems = [];
+    grandTotal = 0;
+    document.getElementById('live-display').value = "0";
+    document.getElementById('history-row').innerText = "";
+    document.getElementById('grand-total').innerText = "0";
+    document.getElementById('prevDue').value = "0";
+    document.getElementById('received').value = "0";
+    document.getElementById('item-name').value = "";
+    updateNetBalance();
+}
+
+function backspace() {
+    if (activeField === "live") {
+        liveInput = liveInput.trim().slice(0, -1);
+        document.getElementById('live-display').value = liveInput || "0";
+    } else {
+        let field = document.getElementById(activeField);
+        field.value = field.value.slice(0, -1) || "0";
+        updateNetBalance();
+    }
+}
+
+async function printBill() {
+    if (historyItems.length === 0) return alert("Pehle ADD (=) button dabayein!");
+
+    try {
+        if (!printerDevice) {
+            printerDevice = await navigator.bluetooth.requestDevice({
+                filters: [{ services: ['000018f0-0000-1000-8000-00805f9b34fb'] }, { namePrefix: 'SRS' }, { namePrefix: 'Bluetooth' }],
+                optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb']
+            });
+        }
+
+        const server = await printerDevice.gatt.connect();
+        const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
+        const characteristic = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
+
+        // Sabhi values ko define karein warna error aayega
+        let sName = localStorage.getItem('shopName') || "STAR DIGITAL";
+        let sContact = localStorage.getItem('shopContact') || "98XXXXXXXX";
+        let cName = document.getElementById('set-cust-name').value || "Guest";
+        let cContact = document.getElementById('set-cust-contact').value || "N/A";
+        let prevDue = parseFloat(document.getElementById('prevDue').value) || 0;
+        let received = parseFloat(document.getElementById('received').value) || 0;
+        let net = (grandTotal + prevDue) - received;
+        
+        let now = new Date();
+        let dateStr = now.toLocaleDateString();
+        let timeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+        let esc = '\x1B\x40'; // Init
+        esc += '\x1B\x61\x01'; // Center
+        esc += '\x1B\x21\x30' + sName + '\n'; // Big Shop Name
+        esc += '\x1B\x21\x00' + 'Mob: ' + sContact + '\n';
+        esc += '--------------------------------\n';
+        esc += '\x1B\x61\x00'; // Left
+        esc += `Date: ${dateStr}  Time: ${timeStr}\n`;
+        esc += `Cust: ${cName}\n`;
+        esc += `Contact: ${cContact}\n`;
+        esc += '--------------------------------\n';
+        
+        historyItems.forEach((item, index) => {
+            esc += `${index + 1}. ${item}\n`;
+        });
+
+        esc += '--------------------------------\n';
+        esc += `SUB TOTAL:      Rs.${grandTotal.toFixed(2)}\n`;
+        esc += `PICHLA UDHAR:   Rs.${prevDue.toFixed(2)}\n`;
+        esc += `AAJ JAMA:       Rs.${received.toFixed(2)}\n`;
+        esc += '--------------------------------\n';
+        esc += '\x1B\x21\x10'; // Bold
+        esc += `NET BALANCE:    Rs.${net.toFixed(2)}\n`;
+        esc += '\x1B\x21\x00'; // Normal
+        esc += '--------------------------------\n';
+        esc += '\x1B\x61\x01' + '\nDHANYAWAD! VISIT AGAIN\n\n\n\n';
+
+        const encoder = new TextEncoder();
+        await characteristic.writeValue(encoder.encode(esc));
+        alert("Printing...");
+    } catch (error) {
+        alert("Printer error! Bluetooth Check karein.");
+    }
+}
