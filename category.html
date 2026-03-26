@@ -611,6 +611,11 @@
     </style>
 </head>
 <body class="bg-gray-100 flex flex-col h-screen overflow-hidden">
+<div class="bg-gray-200 p-2 flex flex-wrap gap-2 text-xs">
+    <input type="text" id="shopName" placeholder="Shop Name" class="border p-1 rounded flex-1" oninput="saveShopInfo()">
+    <input type="tel" id="shopContact" placeholder="Contact (10 Digit)" pattern="[0-9]{10}" class="border p-1 rounded flex-1" oninput="saveShopInfo()">
+    <span id="currentDate" class="font-bold p-1"></span>
+</div>
 
     <header class="bg-purple-800 text-white p-4 flex justify-between items-center shadow-lg">
         <span class="font-extrabold text-lg italic">SARAL BILL</span>
@@ -643,8 +648,11 @@
             <span class="text-sm font-bold uppercase tracking-widest text-gray-400">Total Amount</span>
             <span class="text-2xl font-black text-yellow-400">₹<span id="grand-total">0.00</span></span>
         </div>
+<div class="mt-2">
+    <input type="text" id="custName" placeholder="Customer Name..." class="w-full p-2 border-b-2 border-purple-300 outline-none font-bold text-sm bg-transparent">
+</div>
 
-        <div class="flex gap-2 pb-4"> <button onclick="saveBill()" class="btn-action bg-blue-600 active:bg-blue-800">💾<span>Save</span></button>
+        <div class="flex gap-2 pb-20"> <button onclick="saveBill()" class="btn-action bg-blue-600 active:bg-blue-800">💾<span>Save</span></button>
             <button onclick="shareBill()" class="btn-action bg-green-600 active:bg-green-800">📤<span>Share</span></button>
             <button onclick="window.print()" class="btn-action bg-gray-800 active:bg-black">🖨️<span>Print</span></button>
             <button onclick="exportCSV()" class="btn-action bg-orange-600 active:bg-orange-800">📊<span>CSV</span></button>
@@ -700,7 +708,7 @@
             document.getElementById('modalTitle').innerText = "Add New Item";
             toggleModal();
         }
-
+/*
         async function startCamera() {
             const video = document.getElementById('video');
             const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
@@ -718,6 +726,39 @@
                 stream.getTracks().forEach(t => t.stop());
             };
         }
+*/
+async function startCamera() {
+    const video = document.getElementById('video');
+    const photoPrev = document.getElementById('photo-preview');
+    
+    // Camera access mangna
+    const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: "environment" } 
+    });
+    video.srcObject = stream;
+    video.classList.remove('hidden');
+    photoPrev.classList.add('hidden');
+
+    // Video par click karte hi photo capture hogi
+    video.onclick = () => {
+        const canvas = document.createElement('canvas'); // Temporary canvas
+        canvas.width = 300; 
+        canvas.height = 300;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, 300, 300);
+        
+        // Photo ko base64 format mein convert karna
+        currentPhoto = canvas.toDataURL('image/jpeg', 0.7); 
+        
+        // Preview dikhana
+        photoPrev.src = currentPhoto;
+        photoPrev.classList.remove('hidden');
+        video.classList.add('hidden');
+        
+        // Camera band karna taaki battery bache
+        stream.getTracks().forEach(track => track.stop());
+    };
+}
 
         function saveToInventory() {
             const id = document.getElementById('editId').value;
@@ -828,6 +869,28 @@
             }).join('');
             document.getElementById('grand-total').innerText = total.toFixed(2);
         }
+// 1. Date Show Karna
+document.getElementById('currentDate').innerText = new Date().toLocaleDateString('hi-IN');
+
+// 2. Local Storage Save/Load
+function saveShopInfo() {
+    const info = {
+        name: document.getElementById('shopName').value,
+        contact: document.getElementById('shopContact').value
+    };
+    if(info.contact.length <= 10) {
+        localStorage.setItem('shopDetails', JSON.stringify(info));
+    }
+}
+
+// Page load hote hi data wapas bharna
+window.onload = () => {
+    const saved = JSON.parse(localStorage.getItem('shopDetails'));
+    if(saved) {
+        document.getElementById('shopName').value = saved.name || '';
+        document.getElementById('shopContact').value = saved.contact || '';
+    }
+};
 
         function toggleModal() {
             document.getElementById('productModal').classList.toggle('hidden');
