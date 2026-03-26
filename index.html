@@ -3,105 +3,161 @@
 <head>
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>Bill Fast Banao - Create Bills Instantly</title>
+<title>Bill Fast Banao | Fast Online Bill Generator</title>
 
-<meta name="description" content="Bill Fast Banao helps shopkeepers and businesses create bills instantly with easy online billing tools. Fast, simple and free billing solutions.">
-
-<meta name="keywords" content="fast bill generator, online bill maker, invoice generator, shop billing system, free bill creator">
+<meta name="description" content="Bill Fast Banao helps shopkeepers and small businesses create bills instantly using fast and simple online billing tools.">
+<meta name="keywords" content="online bill generator, invoice maker, fast billing tool, shop billing system">
 
 <meta property="og:title" content="Bill Fast Banao">
-<meta property="og:description" content="Create bills quickly using our smart billing tools.">
+<meta property="og:description" content="Create bills instantly with smart billing tools">
 <meta property="og:type" content="website">
 
 <link rel="icon" href="favicon.png">
 
 <style>
 
-body{
+*{
 margin:0;
+padding:0;
+box-sizing:border-box;
 font-family:Arial;
-background:#f5f5f5;
+}
+
+/* NAVBAR */
+
+header{
+background:#111;
+color:white;
+padding:15px;
+position:sticky;
+top:0;
+z-index:1000;
+}
+
+.nav{
+display:flex;
+justify-content:space-between;
+align-items:center;
+max-width:1100px;
+margin:auto;
+}
+
+.logo{
+font-size:20px;
+font-weight:bold;
+color:#00ffc8;
+}
+
+.menu{
+display:none;
+flex-direction:column;
+position:absolute;
+top:60px;
+right:0;
+background:#111;
+width:200px;
+}
+
+.menu a{
+color:white;
+padding:12px;
+text-decoration:none;
+border-bottom:1px solid #333;
+}
+
+.hamburger{
+font-size:22px;
+cursor:pointer;
 }
 
 /* HERO */
 
 .hero{
 height:420px;
-background:url('https://images.unsplash.com/photo-1556742031-c6961e8560b0') center/cover;
+background:url("https://images.unsplash.com/photo-1556742031-c6961e8560b0") center/cover;
 display:flex;
-align-items:center;
 justify-content:center;
+align-items:center;
 text-align:center;
 color:white;
 }
 
 .hero h1{
-font-size:40px;
-animation:fade 3s infinite alternate;
+font-size:42px;
+animation:glow 2s infinite alternate;
 }
 
-@keyframes fade{
-from{opacity:0.4}
-to{opacity:1}
+@keyframes glow{
+from{text-shadow:0 0 10px #00ffc8}
+to{text-shadow:0 0 25px #00ffc8}
 }
 
-/* INTRO */
+/* CONTENT */
 
 .container{
-padding:40px;
 max-width:1100px;
 margin:auto;
+padding:40px 20px;
 }
 
-/* TOOL CARDS */
+/* TOOLS */
 
 .tools{
 display:flex;
 flex-wrap:wrap;
-gap:20px;
+gap:25px;
 justify-content:center;
+margin-top:30px;
 }
 
-.card{
+.tool-card{
 background:white;
-width:280px;
+width:300px;
 padding:20px;
-border-radius:10px;
-box-shadow:0 0 10px rgba(0,0,0,0.1);
-border:2px solid #00ffd5;
-transition:0.3s;
+border-radius:12px;
+border:2px solid transparent;
+background-image:linear-gradient(white,white),
+linear-gradient(45deg,#00ffc8,#00aaff);
+background-origin:border-box;
+background-clip:padding-box,border-box;
+transition:0.4s;
 }
 
-.card:hover{
-box-shadow:0 0 20px #00ffd5;
-transform:scale(1.05);
+.tool-card:hover{
+transform:translateY(-6px);
+box-shadow:0 0 20px rgba(0,255,200,0.6);
 }
 
-.card img{
+.tool-card img{
 width:100%;
 border-radius:8px;
+}
+
+.tool-card h3{
+margin-top:10px;
 }
 
 .btn{
 display:inline-block;
 margin-top:10px;
-padding:10px 15px;
+padding:10px 16px;
 background:#00b894;
 color:white;
-text-decoration:none;
 border-radius:6px;
+text-decoration:none;
 }
 
-/* INFO SECTION */
+/* INFO */
 
 .info{
 margin-top:50px;
 }
 
 .info h3{
-margin-top:25px;
+margin-top:20px;
+color:#222;
 }
 
 /* ADS */
@@ -111,17 +167,18 @@ margin-top:40px;
 display:flex;
 overflow-x:auto;
 gap:20px;
+padding-bottom:10px;
 }
 
-.ad-card{
-min-width:260px;
+.ad{
+min-width:280px;
 background:white;
 padding:15px;
-border-radius:8px;
-box-shadow:0 0 8px rgba(0,0,0,0.1);
+border-radius:10px;
+box-shadow:0 0 10px rgba(0,0,0,0.1);
 }
 
-.ad-card img{
+.ad img{
 width:100%;
 border-radius:6px;
 }
@@ -129,17 +186,17 @@ border-radius:6px;
 /* FOOTER */
 
 footer{
-margin-top:50px;
-background:#222;
+background:#111;
 color:white;
+padding:30px;
 text-align:center;
-padding:20px;
+margin-top:50px;
 }
 
 footer a{
-color:#00ffd5;
-text-decoration:none;
+color:#00ffc8;
 margin:0 10px;
+text-decoration:none;
 }
 
 </style>
@@ -148,105 +205,111 @@ margin:0 10px;
 
 <body>
 
+<header>
+
+<div class="nav">
+
+<div class="logo">Bill Fast Banao</div>
+
+<div class="hamburger" onclick="toggleMenu()">☰</div>
+
+<div class="menu" id="menu">
+
+<a href="#">Home</a>
+<a href="#">Tools</a>
+<a href="#">About</a>
+<a href="#">Contact</a>
+<a href="#">Privacy</a>
+
+</div>
+
+</div>
+
+</header>
+
 <!-- HERO -->
 
-<div class="hero">
-<h1>Bill Fast Banao – Create Bills Instantly</h1>
-</div>
+<section class="hero">
+<h1>Create Bills Instantly</h1>
+</section>
 
 <div class="container">
 
-<!-- INTRO -->
-
 <p>
-Bill Fast Banao is a simple and powerful online billing platform designed to help shopkeepers, small businesses, and individuals generate bills quickly and efficiently. Many people need a fast way to create professional bills without installing complicated software. This website solves that problem by providing lightweight and easy-to-use billing tools that work directly in your browser.
 
-Over the past few months, several smart billing web apps have been developed and integrated into this platform to make the billing process smoother and faster. Whether you run a general store, small shop, or service business, these tools allow you to create invoices within seconds.
+Bill Fast Banao is a modern and easy-to-use online billing platform created to help shopkeepers, small businesses, and independent professionals generate bills quickly and efficiently. Many small businesses still struggle with complicated billing software that requires installation, training, or expensive subscriptions. Bill Fast Banao solves this problem by providing lightweight tools that work directly in your web browser.
 
-The goal of Bill Fast Banao is to make billing simple, accessible, and mobile-friendly. Users can open the tool, enter their details, and generate a clean bill instantly. No technical knowledge is required. The platform is designed to run smoothly on both mobile phones and desktop devices. Because it is built using lightweight web technology, it loads quickly and works well even on slower internet connections.
+Over the past few months, several smart billing tools have been designed and developed to make invoice creation faster and easier. These tools allow users to enter basic details and generate clean professional bills within seconds. The platform is optimized for mobile devices so users can create bills directly from their smartphones while working at their shop or workplace.
 
-Bill Fast Banao focuses on speed, simplicity, and reliability. Our mission is to provide practical tools that save time and help small businesses manage their daily billing tasks easily.
+The main goal of Bill Fast Banao is to simplify everyday billing tasks. The system focuses on speed, simplicity, and usability so that anyone can generate bills without technical knowledge. Whether you run a small shop, provide services, or manage simple transactions, these tools can help you save time and organize your billing process efficiently.
+
 </p>
-
-<!-- TOOLS -->
 
 <h2>Our Best Billing Tools</h2>
 
 <div class="tools">
 
-<div class="card">
+<div class="tool-card">
 <img src="https://cdn-icons-png.flaticon.com/512/2331/2331943.png">
-<h3>Fast Shop Bill</h3>
-<p>Create quick bills for general stores and small shops.</p>
+<h3>General Store Bill</h3>
+<p>Create bills quickly for general store items.</p>
 <a class="btn" href="#">Start To Create Bill</a>
 </div>
 
-<div class="card">
+<div class="tool-card">
 <img src="https://cdn-icons-png.flaticon.com/512/3135/3135706.png">
-<h3>Simple Invoice Maker</h3>
-<p>Generate professional invoices instantly for services.</p>
+<h3>Invoice Generator</h3>
+<p>Generate professional invoices for services.</p>
 <a class="btn" href="#">Start To Create Bill</a>
 </div>
 
-<div class="card">
+<div class="tool-card">
 <img src="https://cdn-icons-png.flaticon.com/512/2920/2920277.png">
-<h3>Receipt Generator</h3>
-<p>Create clean receipts that can be saved or shared.</p>
+<h3>Receipt Maker</h3>
+<p>Create clean payment receipts instantly.</p>
 <a class="btn" href="#">Start To Create Bill</a>
 </div>
 
 </div>
-
-<!-- INFO -->
 
 <div class="info">
 
 <h3>Why Choose Bill Fast Banao?</h3>
-<p>
-Bill Fast Banao provides a fast and simple way to create bills online. The tools are designed for everyday users who want quick results without complex software. Everything works directly in the browser, making it convenient and easy to access anytime.
-</p>
+<p>Our platform is designed to make billing simple and fast. The tools are lightweight and work smoothly on both mobile phones and desktop devices.</p>
 
 <h3>Is It Free?</h3>
-<p>
-Yes, the platform is designed to provide free billing tools so that small businesses and individuals can generate bills without paying for expensive billing software.
-</p>
+<p>Yes. Most tools are completely free so that small businesses can generate bills without expensive billing software.</p>
 
 <h3>Is It Safe?</h3>
-<p>
-The website focuses on simplicity and privacy. Most tools work directly in your browser without storing personal billing data on external servers.
-</p>
+<p>The system focuses on privacy and simplicity. Many tools run directly in your browser without storing sensitive billing data.</p>
 
 </div>
-
-<!-- ADS -->
 
 <h2>Recommended Products</h2>
 
 <div class="ads">
 
-<div class="ad-card">
-<img src="https://images.unsplash.com/photo-1581091215367-59ab6c9a1b4b">
-<h4>Billing Printer</h4>
-<p>Perfect printer for shop billing.</p>
-</div>
-
-<div class="ad-card">
-<img src="https://images.unsplash.com/photo-1606813909353-64b36a1cdb55">
-<h4>Barcode Scanner</h4>
-<p>Fast USB barcode scanner for shops.</p>
-</div>
-
-<div class="ad-card">
+<div class="ad">
 <img src="https://images.unsplash.com/photo-1581092334651-ddf26d9a09d0">
 <h4>POS Machine</h4>
-<p>Modern POS system for small businesses.</p>
+<p>Perfect device for shop billing.</p>
+</div>
+
+<div class="ad">
+<img src="https://images.unsplash.com/photo-1606813909353-64b36a1cdb55">
+<h4>Barcode Scanner</h4>
+<p>Fast USB barcode scanner.</p>
+</div>
+
+<div class="ad">
+<img src="https://images.unsplash.com/photo-1581091215367-59ab6c9a1b4b">
+<h4>Thermal Printer</h4>
+<p>Best printer for billing receipts.</p>
 </div>
 
 </div>
 
 </div>
-
-<!-- FOOTER -->
 
 <footer>
 
@@ -258,6 +321,21 @@ The website focuses on simplicity and privacy. Most tools work directly in your 
 <a href="#">Terms</a>
 
 </footer>
+
+<script>
+
+function toggleMenu(){
+
+let menu=document.getElementById("menu");
+
+if(menu.style.display==="flex")
+menu.style.display="none";
+else
+menu.style.display="flex";
+
+}
+
+</script>
 
 </body>
 </html>
