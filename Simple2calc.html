@@ -510,20 +510,20 @@ async function printBill() {
 }
 */
     async function printBill() {
-    if (historyItems.length === 0) return alert("Pehle item add karein!");
+    if (historyItems.length === 0) return alert("Pehle items add karein!");
 
     try {
         if (!printerDevice) {
             printerDevice = await navigator.bluetooth.requestDevice({
-                filters: [{ services: ['000018f0-0000-1000-8000-00805f9b34fb'] }, { namePrefix: 'SRS' }, { namePrefix: 'Bluetooth' }],
+                filters: [{ services: ['000018f0-0000-1000-8000-00805f9b34fb'] }, { namePrefix: 'SRS' }],
                 optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb']
             });
         }
-
         const server = await printerDevice.gatt.connect();
         const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
-        const characteristic = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
+        const char = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
 
+        // Sare Variables Load Karein
         let sName = localStorage.getItem('shopName') || "STAR DIGITAL";
         let sContact = localStorage.getItem('shopContact') || "98XXXXXXXX";
         let cName = document.getElementById('set-cust-name').value || "Guest";
@@ -536,41 +536,66 @@ async function printBill() {
         let dateStr = now.toLocaleDateString();
         let timeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
-        let esc = '\x1B\x40'; 
-        esc += '\x1B\x61\x01'; 
-        esc += '\x1B\x21\x30' + sName + '\n'; 
+        let esc = '\x1B\x40'; // Init
+        esc += '\x1B\x61\x01'; // Center
+        esc += '\x1B\x21\x30' + sName + '\n'; // Big Header
         esc += '\x1B\x21\x00' + 'Mob: ' + sContact + '\n';
         esc += '--------------------------------\n';
-        esc += '\x1B\x61\x00'; 
+        
+        esc += '\x1B\x61\x00'; // Left
         esc += `Date: ${dateStr}  Time: ${timeStr}\n`;
         esc += `Cust: ${cName}\n`;
-        esc += `Contact: ${cContact}\n`;
+        esc += `Mob:  ${cContact}\n`;
         esc += '--------------------------------\n';
         
+        // History items loop
         historyItems.forEach((item, index) => {
             esc += `${index + 1}. ${item}\n`;
         });
 
         esc += '--------------------------------\n';
-        esc += `SUB TOTAL:      Rs.${grandTotal.toFixed(2)}\n`;
-        esc += `PICHLA UDHAR:   Rs.${prevDue.toFixed(2)}\n`;
-        esc += `AAJ JAMA:       Rs.${received.toFixed(2)}\n`;
+        esc += `SubTotal: Rs.${grandTotal.toFixed(2)}\n`;
+        esc += `Prev Due: Rs.${prevDue.toFixed(2)}\n`;
+        esc += `Received: Rs.${received.toFixed(2)}\n`;
         esc += '--------------------------------\n';
-        esc += '\x1B\x21\x10' + `NET BALANCE:    Rs.${net.toFixed(2)}\n` + '\x1B\x21\x00';
+        esc += '\x1B\x21\x10' + `NET BAL:  Rs.${net.toFixed(2)}\n` + '\x1B\x21\x00';
         esc += '\x1B\x61\x01' + '\nDHANYAWAD! VISIT AGAIN\n\n\n\n';
 
-        const encoder = new TextEncoder();
-        await characteristic.writeValue(encoder.encode(esc));
+        await char.writeValue(new TextEncoder().encode(esc));
+        alert("Print command sent!");
     } catch (error) {
-        alert("Bluetooth Printer Connect Nahi Hua!");
+        alert("Printer connect nahi hua!");
     }
 }
-
 </script>
 </body>
 </html>
 /*
-// 3. Calculation & Display Logic
+let liveInput = "";
+let historyItems = []; 
+let grandTotal = 0;
+let activeField = "live";
+let lastState = null;
+let printerDevice = null;
+
+window.onload = function() {
+    if(localStorage.getItem('shopName')) document.getElementById('set-shop-name').value = localStorage.getItem('shopName');
+    if(localStorage.getItem('shopContact')) document.getElementById('set-shop-contact').value = localStorage.getItem('shopContact');
+    updateNetBalance();
+};
+
+function toggleSettings() {
+    const modal = document.getElementById('shop-settings');
+    modal.style.display = (modal.style.display === "flex") ? "none" : "flex";
+}
+
+function saveShopDetails() {
+    localStorage.setItem('shopName', document.getElementById('set-shop-name').value);
+    localStorage.setItem('shopContact', document.getElementById('set-shop-contact').value);
+    toggleSettings();
+    alert("Settings Saved!");
+}
+
 function updateNetBalance() {
     let prevDue = parseFloat(document.getElementById('prevDue').value) || 0;
     let received = parseFloat(document.getElementById('received').value) || 0;
@@ -578,79 +603,65 @@ function updateNetBalance() {
     document.getElementById('net-result').innerText = "₹ " + net.toFixed(2);
 }
 
-function setCurrentInput(field) {
-    activeField = field;
-    document.querySelectorAll('.input-group input').forEach(el => el.style.borderColor = "#ccc");
-    document.getElementById(field).style.borderColor = "#007bff";
-}
-
-function addNumber(num) {
-    if (activeField === "live") {
-        liveInput = (liveInput === "0") ? num : liveInput + num;
-        document.getElementById('live-display').value = liveInput;
-    } else {
-        let field = document.getElementById(activeField);
-        field.value = (field.value === "0") ? num : field.value + num;
+// --- Undo Function Fix ---
+function undo() {
+    if (lastState && historyItems.length > 0) {
+        historyItems = [...lastState.history];
+        grandTotal = lastState.total;
+        
+        document.getElementById('history-row').innerText = historyItems.join(" | ");
+        document.getElementById('grand-total').innerText = grandTotal.toFixed(2);
         updateNetBalance();
+        lastState = null; 
+    } else {
+        alert("Pehle kuch add karein!");
     }
-}
-
-function addOperator(op) {
-    activeField = "live";
-    if (liveInput === "" || liveInput === "0") return;
-    liveInput += " " + op + " ";
-    document.getElementById('live-display').value = liveInput;
 }
 
 function calculate() {
     try {
         if (liveInput === "" || liveInput === "0") return;
         
+        // State save karein undo ke liye
+        lastState = { history: [...historyItems], total: grandTotal };
+
         let nameInput = document.getElementById('item-name').value || "Item";
         let expression = liveInput.trim();
-        // Replace visual ops with math ops
         let mathExp = expression.replace(/×/g, '*').replace(/÷/g, '/');
         let result = eval(mathExp);
 
-        if (isNaN(result)) throw "Error";
-
-        // Update Total & History
         grandTotal += result;
-        historyItems.push(`${nameInput}: ${expression} = ${result.toFixed(2)}`);
+        
+        // Purana format wapas: Name: Exp = Result
+        let newItem = `${nameInput}: ${expression} = ${result.toFixed(2)}`;
+        historyItems.push(newItem);
 
-        // Update UI
         document.getElementById('history-row').innerText = historyItems.join(" | ");
         document.getElementById('grand-total').innerText = grandTotal.toFixed(2);
         
-        // Clear for next
         liveInput = "";
         document.getElementById('live-display').value = "0";
         document.getElementById('item-name').value = "";
         updateNetBalance();
-
-    } catch (e) {
-        alert("Sahi format likhein (e.g. 10 + 20)");
-        liveInput = "";
-        document.getElementById('live-display').value = "0";
-    }
+    } catch (e) { alert("Format Error!"); }
 }
 
-// 4. Printer Logic
+// --- Optimized Printer Logic (Sari Details ke Saath) ---
 async function printBill() {
-    if (historyItems.length === 0) return alert("Pehle item add karein!");
+    if (historyItems.length === 0) return alert("Pehle items add karein!");
 
     try {
         if (!printerDevice) {
             printerDevice = await navigator.bluetooth.requestDevice({
-                filters: [{ services: ['000018f0-0000-1000-8000-00805f9b34fb'] }, { namePrefix: 'SRS' }, { namePrefix: 'Bluetooth' }],
+                filters: [{ services: ['000018f0-0000-1000-8000-00805f9b34fb'] }, { namePrefix: 'SRS' }],
                 optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb']
             });
         }
-
         const server = await printerDevice.gatt.connect();
         const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
-        const characteristic = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
+        const char = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
 
+        // Sare Variables Load Karein
         let sName = localStorage.getItem('shopName') || "STAR DIGITAL";
         let sContact = localStorage.getItem('shopContact') || "98XXXXXXXX";
         let cName = document.getElementById('set-cust-name').value || "Guest";
@@ -663,33 +674,38 @@ async function printBill() {
         let dateStr = now.toLocaleDateString();
         let timeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
-        let esc = '\x1B\x40'; 
-        esc += '\x1B\x61\x01'; 
-        esc += '\x1B\x21\x30' + sName + '\n'; 
+        let esc = '\x1B\x40'; // Init
+        esc += '\x1B\x61\x01'; // Center
+        esc += '\x1B\x21\x30' + sName + '\n'; // Big Header
         esc += '\x1B\x21\x00' + 'Mob: ' + sContact + '\n';
         esc += '--------------------------------\n';
-        esc += '\x1B\x61\x00'; 
+        
+        esc += '\x1B\x61\x00'; // Left
         esc += `Date: ${dateStr}  Time: ${timeStr}\n`;
         esc += `Cust: ${cName}\n`;
-        esc += `Contact: ${cContact}\n`;
+        esc += `Mob:  ${cContact}\n`;
         esc += '--------------------------------\n';
         
+        // History items loop
         historyItems.forEach((item, index) => {
             esc += `${index + 1}. ${item}\n`;
         });
 
         esc += '--------------------------------\n';
-        esc += `SUB TOTAL:      Rs.${grandTotal.toFixed(2)}\n`;
-        esc += `PICHLA UDHAR:   Rs.${prevDue.toFixed(2)}\n`;
-        esc += `AAJ JAMA:       Rs.${received.toFixed(2)}\n`;
+        esc += `SubTotal: Rs.${grandTotal.toFixed(2)}\n`;
+        esc += `Prev Due: Rs.${prevDue.toFixed(2)}\n`;
+        esc += `Received: Rs.${received.toFixed(2)}\n`;
         esc += '--------------------------------\n';
-        esc += '\x1B\x21\x10' + `NET BALANCE:    Rs.${net.toFixed(2)}\n` + '\x1B\x21\x00';
+        esc += '\x1B\x21\x10' + `NET BAL:  Rs.${net.toFixed(2)}\n` + '\x1B\x21\x00';
         esc += '\x1B\x61\x01' + '\nDHANYAWAD! VISIT AGAIN\n\n\n\n';
 
-        const encoder = new TextEncoder();
-        await characteristic.writeValue(encoder.encode(esc));
+        await char.writeValue(new TextEncoder().encode(esc));
+        alert("Print command sent!");
     } catch (error) {
-        alert("Bluetooth Printer Connect Nahi Hua!");
+        alert("Printer connect nahi hua!");
     }
 }
+
+// ... baaki addNumber, addOperator functions pehle jaise hi rahenge ...
+
 */
