@@ -229,7 +229,7 @@
                 snapBtn.innerText = "🎯 Capture";
             } else {
                 const canvas = document.getElementById('canvas');
-                canvas.width = 100; canvas.height = 100;
+                canvas.width = 400; canvas.height = 400;
                 canvas.getContext('2d').drawImage(video, 0, 0, 100, 100);
                 currentPhoto = canvas.toDataURL('image/jpeg');
                 document.getElementById('photo-preview').src = currentPhoto;
