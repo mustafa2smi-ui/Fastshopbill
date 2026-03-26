@@ -915,7 +915,7 @@ window.onload = () => {
 </body>
 </html>
 -->
-
+<!--
 <!DOCTYPE html>
 <html lang="hi">
 <head>
@@ -1191,6 +1191,268 @@ window.onload = () => {
         function exportCSV() { alert("Downloading CSV..."); }
 
         window.onload = () => { loadShopInfo(); renderAll(); };
+    </script>
+</body>
+</html>
+-->
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Saral Bill Slim Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .img-circle { width: 70px; height: 70px; object-fit: cover; border-radius: 12px; border: 1px solid #ddd; background: #eee; }
+        .active-cat { border-left: 3px solid #7c3aed; background: #f3f4f6; color: #7c3aed; font-weight: bold; }
+        .btn-action { @apply flex-1 py-2 rounded-lg text-white text-[10px] font-bold flex flex-col items-center justify-center shadow-sm; }
+        tr { border-bottom: 1px solid #f0f0f0; }
+    </style>
+</head>
+<body class="bg-gray-100 flex flex-col h-screen overflow-hidden">
+
+    <div class="bg-gray-900 text-white px-2 py-1 flex gap-2 text-[9px] items-center">
+        <input type="text" id="shopName" placeholder="Shop Name" class="bg-transparent border-b border-gray-600 p-0.5 flex-1 outline-none" oninput="saveShopInfo()">
+        <input type="tel" id="shopContact" maxlength="10" placeholder="Contact" class="bg-transparent border-b border-gray-600 p-0.5 w-20 outline-none" oninput="saveShopInfo()">
+    </div>
+
+    <header class="bg-purple-700 text-white p-2 flex justify-between items-center shadow-md">
+        <div class="flex flex-col">
+            <span class="font-black text-xs leading-none uppercase">Saral Bill Pro</span>
+            <span id="currentDate" class="text-[8px] opacity-70 mt-1 italic font-bold"></span>
+        </div>
+        <button onclick="openNewItemModal()" class="bg-yellow-400 text-purple-900 px-3 py-1 rounded-full text-[10px] font-black shadow-lg">ADD +</button>
+    </header>
+
+    <div class="flex flex-1 overflow-hidden">
+        <aside id="sidebar" class="w-16 bg-white border-r overflow-y-auto no-scrollbar order-2 shadow-inner"></aside>
+
+        <main class="flex-1 overflow-y-auto order-1 bg-white">
+            <table class="w-full text-left">
+                <thead class="sticky top-0 bg-gray-100 text-[9px] font-bold z-10 uppercase">
+                    <tr>
+                        <th class="p-2">Item</th>
+                        <th class="p-2">Details</th>
+                        <th class="p-2">Price</th>
+                        <th class="p-2">Edit</th>
+                    </tr>
+                </thead>
+                <tbody id="inventory-list"></tbody>
+            </table>
+        </main>
+    </div>
+
+    <section class="bg-white border-t-2 border-purple-400 p-2 shadow-[0_-5px_15px_rgba(0,0,0,0.1)] z-20 pb-4">
+        <div id="bill-items" class="max-h-32 overflow-y-auto space-y-1 mb-2 no-scrollbar"></div>
+        
+        <input type="text" id="custName" placeholder="Customer Name..." class="w-full p-1 border-b border-gray-300 outline-none font-bold text-[11px] mb-2 bg-transparent">
+
+        <div class="flex justify-between items-center px-3 py-1 bg-purple-900 text-white rounded-md mb-3">
+            <span class="text-[9px] font-bold opacity-70 uppercase tracking-tighter">TOTAL</span>
+            <span class="text-base font-black text-yellow-300">₹<span id="grand-total">0.00</span></span>
+        </div>
+
+        <div class="flex gap-1">
+            <button onclick="saveBill()" class="btn-action bg-blue-600">💾<span>Save</span></button>
+            <button onclick="shareBill()" class="btn-action bg-green-600">📤<span>Share</span></button>
+            <button onclick="window.print()" class="btn-action bg-gray-700">🖨️<span>Print</span></button>
+            <button onclick="exportCSV()" class="btn-action bg-orange-600">📊<span>CSV</span></button>
+            <button onclick="clearBill()" class="btn-action bg-red-500 font-black">❌<span>Reset</span></button>
+        </div>
+    </section>
+
+    <div id="productModal" class="fixed inset-0 bg-black/90 hidden items-center justify-center p-4 z-[100]">
+        <div class="bg-white rounded-2xl w-full max-w-sm p-4 space-y-3">
+            <h2 id="modalTitle" class="font-black text-base text-purple-800 border-b pb-1 text-center">ITEM ENTRY</h2>
+            
+            <div class="flex flex-col items-center bg-gray-50 p-2 rounded-xl border border-dashed border-purple-300">
+                <video id="video" class="hidden w-28 h-28 rounded-lg object-cover" autoplay playsinline></video>
+                <img id="photo-preview" src="" class="w-24 h-24 rounded-lg object-cover hidden">
+                <button id="snap" onclick="startCamera()" class="mt-2 bg-purple-600 text-white px-3 py-1 rounded-md text-[10px] font-bold">📷 Camera</button>
+            </div>
+
+            <div class="space-y-2">
+                <input type="hidden" id="editId">
+                <input type="text" id="newName" placeholder="Item Name" class="w-full border p-2 rounded-lg text-sm">
+                <div class="flex gap-2">
+                    <input type="text" id="newCat" placeholder="Cat" class="w-1/2 border p-2 rounded-lg text-xs">
+                    <input type="text" id="newSubCat" placeholder="Sub-Cat" class="w-1/2 border p-2 rounded-lg text-xs">
+                </div>
+                <input type="text" id="newBrand" placeholder="Brand" class="w-full border p-2 rounded-lg text-xs">
+                <input type="number" id="newRate" step="0.01" placeholder="Rate ₹" class="w-full border-2 border-purple-500 p-2 rounded-xl text-lg font-black text-center text-purple-800">
+            </div>
+            
+            <div class="flex gap-2">
+                <button onclick="saveToInventory()" class="flex-[2] bg-purple-700 text-white py-3 rounded-xl font-bold text-sm">SAVE</button>
+                <button onclick="toggleModal()" class="flex-1 bg-gray-200 py-3 rounded-xl text-xs">CLOSE</button>
+            </div>
+        </div>
+    </div>
+
+    <canvas id="canvas" class="hidden"></canvas>
+
+    <script>
+        let inventory = JSON.parse(localStorage.getItem('myInventory')) || [];
+        let cart = [];
+        let currentPhoto = '';
+
+        // 1. Working Camera
+        async function startCamera() {
+            const video = document.getElementById('video');
+            const snapBtn = document.getElementById('snap');
+            if (snapBtn.innerText === "📷 Camera") {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                video.srcObject = stream; video.classList.remove('hidden');
+                document.getElementById('photo-preview').classList.add('hidden');
+                snapBtn.innerText = "🎯 Capture";
+            } else {
+                const canvas = document.getElementById('canvas');
+                canvas.width = 400; canvas.height = 400;
+                canvas.getContext('2d').drawImage(video, 0, 0, 400, 400);
+                currentPhoto = canvas.toDataURL('image/jpeg', 0.8);
+                document.getElementById('photo-preview').src = currentPhoto;
+                document.getElementById('photo-preview').classList.remove('hidden');
+                video.classList.add('hidden');
+                video.srcObject.getTracks().forEach(t => t.stop());
+                snapBtn.innerText = "📷 Camera";
+            }
+        }
+
+        // 2. Load/Save Info
+        document.getElementById('currentDate').innerText = new Date().toLocaleDateString('hi-IN', {day:'2-digit', month:'short', year:'numeric'});
+        function saveShopInfo() {
+            const info = { name: document.getElementById('shopName').value, contact: document.getElementById('shopContact').value };
+            localStorage.setItem('shopDetails', JSON.stringify(info));
+        }
+
+        // 3. Inventory Logic
+        function renderAll() {
+            const cats = ['All', ...new Set(inventory.map(i => i.cat))];
+            document.getElementById('sidebar').innerHTML = cats.map(c => 
+                `<div onclick="filterByCat('${c}')" class="p-2 mb-1 text-[8px] text-center border-b uppercase font-bold break-words">${c}</div>`
+            ).join('');
+            renderTable(inventory);
+        }
+
+        function renderTable(data) {
+            const list = document.getElementById('inventory-list');
+            list.innerHTML = data.map(item => `
+                <tr class="h-20">
+                    <td class="p-1" onclick="addToBill(${item.id})">
+                        <img src="${item.img.length > 10 ? item.img : 'https://via.placeholder.com/70'}" class="img-circle">
+                    </td>
+                    <td class="p-1" onclick="addToBill(${item.id})">
+                        <div class="font-bold text-gray-800 text-[11px] leading-tight">${item.name}</div>
+                        <div class="text-[8px] text-purple-600 font-bold uppercase">${item.brand}</div>
+                    </td>
+                    <td class="p-1 font-black text-xs text-blue-700" onclick="addToBill(${item.id})">₹${item.rate.toFixed(2)}</td>
+                    <td class="p-1">
+                        <div class="flex flex-col gap-1">
+                            <button onclick="editItem(${item.id})" class="bg-gray-100 p-1 rounded text-xs">✏️</button>
+                            <button onclick="deleteItem(${item.id})" class="bg-red-50 p-1 rounded text-xs">🗑️</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // 4. Billing Logic (With Item Removal)
+        function addToBill(id) {
+            const prod = inventory.find(i => i.id === id);
+            const exist = cart.find(c => c.id === id);
+            if(exist) exist.qty += 1;
+            else cart.push({...prod, qty: 1.000});
+            updateBillUI();
+        }
+
+        function removeFromCart(id) {
+            cart = cart.filter(item => item.id !== id);
+            updateBillUI();
+        }
+
+        function updateQty(id, delta) {
+            const item = cart.find(i => i.id === id);
+            if(item) {
+                item.qty = parseFloat((item.qty + delta).toFixed(3));
+                if(item.qty <= 0) removeFromCart(id);
+                updateBillUI();
+            }
+        }
+
+        function updateBillUI() {
+            let total = 0;
+            document.getElementById('bill-items').innerHTML = cart.map(item => {
+                const amt = item.rate * item.qty;
+                total += amt;
+                return `
+                    <div class="flex justify-between items-center bg-gray-50 p-1.5 rounded-lg border-l-2 border-purple-600 text-[10px] mb-1">
+                        <div class="flex-1 font-bold">${item.name}</div>
+                        <div class="flex items-center gap-1 mx-2">
+                            <button onclick="updateQty(${item.id}, -1)" class="bg-white w-5 h-5 shadow rounded">-</button>
+                            <span class="font-mono font-bold w-10 text-center">${item.qty.toFixed(3)}</span>
+                            <button onclick="updateQty(${item.id}, 1)" class="bg-white w-5 h-5 shadow rounded">+</button>
+                        </div>
+                        <div class="w-16 text-right font-black">₹${amt.toFixed(2)}</div>
+                        <button onclick="removeFromCart(${item.id})" class="text-red-500 font-bold px-2 ml-1 text-xs">✕</button>
+                    </div>
+                `;
+            }).join('');
+            document.getElementById('grand-total').innerText = total.toFixed(2);
+        }
+
+        // Essential Modal & Edit Functions
+        function openNewItemModal() {
+            document.getElementById('editId').value = '';
+            document.getElementById('newName').value = '';
+            document.getElementById('newRate').value = '';
+            document.getElementById('photo-preview').classList.add('hidden');
+            document.getElementById('video').classList.add('hidden');
+            document.getElementById('snap').innerText = "📷 Camera";
+            currentPhoto = ''; toggleModal();
+        }
+
+        function saveToInventory() {
+            const id = document.getElementById('editId').value;
+            const item = {
+                id: id ? parseInt(id) : Date.now(),
+                name: document.getElementById('newName').value,
+                cat: document.getElementById('newCat').value || 'General',
+                subCat: document.getElementById('newSubCat').value || 'N/A',
+                brand: document.getElementById('newBrand').value,
+                rate: parseFloat(document.getElementById('newRate').value) || 0,
+                img: currentPhoto || '📦'
+            };
+            if(!item.name || !item.rate) return alert("Pehle Name/Rate bharein!");
+            if(id) inventory = inventory.map(i => i.id == id ? item : i);
+            else inventory.push(item);
+            localStorage.setItem('myInventory', JSON.stringify(inventory));
+            renderAll(); toggleModal();
+        }
+
+        function deleteItem(id) { if(confirm("Item hatayein?")) { inventory = inventory.filter(i => i.id !== id); localStorage.setItem('myInventory', JSON.stringify(inventory)); renderAll(); } }
+        function editItem(id) {
+            const item = inventory.find(i => i.id === id);
+            document.getElementById('editId').value = item.id;
+            document.getElementById('newName').value = item.name;
+            document.getElementById('newRate').value = item.rate;
+            currentPhoto = item.img; document.getElementById('photo-preview').src = item.img;
+            document.getElementById('photo-preview').classList.remove('hidden');
+            toggleModal();
+        }
+
+        function toggleModal() { document.getElementById('productModal').classList.toggle('hidden'); document.getElementById('productModal').classList.toggle('flex'); }
+        function filterByCat(cat) { if(cat === 'All') return renderTable(inventory); renderTable(inventory.filter(i => i.cat === cat)); }
+        function clearBill() { if(confirm("Reset bill?")) { cart = []; updateBillUI(); document.getElementById('custName').value = ''; } }
+        function saveBill() { alert("Saved!"); }
+        function shareBill() { alert("Sharing..."); }
+        function exportCSV() { alert("CSV Ready!"); }
+
+        window.onload = () => { 
+            const saved = JSON.parse(localStorage.getItem('shopDetails'));
+            if(saved) { document.getElementById('shopName').value = saved.name; document.getElementById('shopContact').value = saved.contact; }
+            renderAll(); 
+        };
     </script>
 </body>
 </html>
