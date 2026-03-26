@@ -1,0 +1,695 @@
+<!--
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Star Digital Bill Pro</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+<header class="navbar">
+    <div class="menu-icon" onclick="toggleSettings()">☰</div>
+    <div class="logo">STAR DIGITAL</div>
+    <div onclick="toggleSettings()"><i class="fas fa-cog"></i></div> 
+</header>
+
+<div id="shop-settings" class="settings-modal">
+    <div class="modal-content">
+        <h4><i class="fas fa-store"></i> Shop Settings</h4>
+        <hr>
+        <label>Shop Details</label>
+        <input type="text" id="set-shop-name" placeholder="Shop ka Naam">
+        <input type="text" id="set-shop-contact" placeholder="Shop Mobile Number">
+        
+        <label>Customer Details</label>
+        <input type="text" id="set-cust-name" placeholder="Customer Name">
+        <input type="text" id="set-cust-contact" placeholder="Customer Mobile">
+        
+        <div class="modal-buttons">
+            <button onclick="saveShopDetails()" class="save-btn">Save Details</button>
+            <button onclick="toggleSettings()" class="close-btn">Close</button>
+        </div>
+    </div>
+</div>
+
+<div class="main-wrapper">
+    <div class="calculator-container">
+        <div class="item-entry-bar">
+            <input type="text" id="item-name" placeholder="Item ka naam (e.g. Samosa)">
+        </div>
+
+        <div class="display-box">
+            <div class="display-row" id="hist-scroll"><span class="label">History:</span> <span id="history-row"></span></div>
+            <div class="display-row"><span class="label">Sub-Total:</span> <span id="grand-total">0</span></div>
+            <div class="display-row live-row"><span class="label">Live:</span> <input type="text" id="live-display" value="0" readonly></div>
+        </div>
+
+        <div class="extra-inputs">
+            <div class="input-group">
+                <label>Pichla Udhar</label>
+                <input type="number" id="prevDue" value="0" onclick="setCurrentInput('prevDue')" readonly>
+            </div>
+            <div class="input-group">
+                <label>Aaj Jama</label>
+                <input type="number" id="received" value="0" onclick="setCurrentInput('received')" readonly>
+            </div>
+        </div>
+
+        <div class="grand-balance-box">
+            <span>Net Balance:</span>
+            <span id="net-result">₹ 0</span>
+        </div>
+
+        <div class="buttons">
+            <button onclick="clearAll()" class="btn-clear">AC</button>
+            <button onclick="undo()" class="btn-undo">Undo</button>
+            <button onclick="backspace()" class="btn-op">⌫</button>
+            <button onclick="addOperator('/')" class="btn-op">÷</button>
+            
+            <button onclick="addNumber('7')">7</button>
+            <button onclick="addNumber('8')">8</button>
+            <button onclick="addNumber('9')">9</button>
+            <button onclick="addOperator('*')" class="btn-op">×</button>
+            
+            <button onclick="addNumber('4')">4</button>
+            <button onclick="addNumber('5')">5</button>
+            <button onclick="addNumber('6')">6</button>
+            <button onclick="addOperator('+')" class="btn-op">+</button>
+            
+            <button onclick="addNumber('1')">1</button>
+            <button onclick="addNumber('2')">2</button>
+            <button onclick="addNumber('3')">3</button>
+            <button onclick="calculate()" class="btn-equal">=</button>
+            
+            <button onclick="addNumber('0')">0</button>
+            <button onclick="addNumber('.')">.</button>
+            <button onclick="printBill()" class="btn-print">PRINT</button>
+        </div>
+    </div>
+</div>
+
+<footer class="footer">
+    <a href="#" onclick="alert('Dashboard Coming Soon')">Dashboard</a>
+    <a href="#" onclick="alert('History Feature Coming Soon')">History</a>
+    <a href="#" onclick="toggleSettings()">Settings</a>
+</footer>
+
+<div id="printArea" style="display:none;"></div>
+
+<script src="script.js"></script>
+</body>
+</html>
+/* Settings Modal Styling */
+.settings-modal {
+    display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center;
+}
+.modal-content {
+    background: #fff; padding: 20px; border-radius: 15px; width: 85%; max-width: 300px; color: #333;
+}
+.modal-content h4 { margin-top: 0; color: #007bff; }
+.modal-content label { font-size: 0.7rem; color: #666; display: block; margin-top: 10px; }
+.modal-content input { width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ccc; border-radius: 5px; }
+.modal-buttons { display: flex; gap: 10px; margin-top: 15px; }
+.save-btn { background: #28a745; color: white; flex: 1; border: none; padding: 10px; border-radius: 5px; }
+.close-btn { background: #6c757d; color: white; flex: 1; border: none; padding: 10px; border-radius: 5px; }
+
+/* Item Name Input Styling */
+.item-entry-bar input {
+    width: 100%; padding: 8px; border: 1.5px solid #007bff; border-radius: 10px; margin-bottom: 10px; text-align: center; outline: none;
+}
+
+-->
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Star Digital Bill Pro</title>
+   <!-- <link rel="stylesheet" href="style.css">-->
+  <style>
+  :root {
+    --primary-blue: #007bff; /* Main Theme Color */
+    --soft-bg: #f8f9fa;     /* Light Background */
+    --text-dark: #333;
+    --card-white: #ffffff;
+}
+
+body { 
+    background: var(--soft-bg); margin: 0; color: var(--text-dark); 
+    font-family: 'Segoe UI', sans-serif; overflow: hidden;
+}
+
+/* Header & Footer (Light Style) */
+.navbar {
+    position: fixed; top: 0; width: 100%; height: 50px;
+    background: var(--primary-blue); display: flex; align-items: center;
+    justify-content: space-between; padding: 0 15px; color: white; z-index: 100;
+}
+.footer {
+    position: fixed; bottom: 0; width: 100%; height: 50px;
+    background: white; display: flex; justify-content: space-around;
+    align-items: center; border-top: 1px solid #ddd; font-size: 0.8rem;
+}
+.footer a { color: var(--primary-blue); text-decoration: none; font-weight: bold; }
+
+.main-wrapper {
+    padding-top: 60px; display: flex; justify-content: center; align-items: center; height: 82vh;
+}
+
+.calculator-container { 
+    width: 320px; background: var(--card-white); padding: 15px; 
+    border-radius: 20px; border: 1px solid #ddd;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1); /* Soft Shadow */
+}
+
+/* Display Box */
+.display-box { 
+    background: #f1f3f4; padding: 10px; border-radius: 12px; margin-bottom: 10px;
+}
+.display-row { font-size: 0.8rem; color: #666; margin-bottom: 2px; overflow-x: auto; }
+.label { color: var(--primary-blue); font-weight: bold; }
+#grand-total { font-size: 1.1rem; color: #000; font-weight: bold; }
+#live-display { background: none; border: none; color: #000; font-size: 1.3rem; width: 85%; text-align: right; outline: none; }
+
+/* --- Compact Input Boxes --- */
+.extra-inputs { 
+    display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 10px; 
+}
+.input-group { display: flex; flex-direction: column; }
+.input-group label { font-size: 0.65rem; margin-bottom: 2px; color: #555; text-align: center; font-weight: bold; }
+.input-group input { 
+    background: #fff; border: 1.5px solid #ccc; color: #000; 
+    padding: 6px; border-radius: 8px; text-align: center; 
+    font-size: 0.9rem; outline: none; width:140px;
+}
+.input-group input:focus { border-color: var(--primary-blue); }
+
+/* Net Balance (Bright Box) */
+.grand-balance-box {
+    background: var(--primary-blue); padding: 8px 12px; border-radius: 10px; 
+    margin-bottom: 10px; display: flex; justify-content: space-between; 
+    color: white; font-weight: bold; font-size: 1rem;
+}
+
+/* Keypad Colors */
+.buttons { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+button { 
+    padding: 14px; font-size: 1rem; border-radius: 10px; border: none; 
+    background: #e9ecef; color: #333; cursor: pointer; font-weight: 500;
+}
+button:active { background: #dee2e6; transform: translateY(2px); }
+
+.btn-op { background: #d1ecf1; color: #0c5460; } /* Operators color */
+.btn-equal { background: #28a745; color: white; grid-row: span 2; } /* Green Equal */
+.btn-clear { background: #dc3545; color: white; } /* Red AC */
+.btn-undo { background: #ffc107; color: #000; font-size: 0.8rem; }
+.btn-print { background: #6c757d; color: white; }
+
+/* Item Name Input Styling */
+.item-entry-bar input {
+    width: 100%; padding: 8px; border: 1.5px solid #007bff; border-radius: 10px; margin-bottom: 10px; text-align: center; outline: none;
+}
+@media print {
+    body * { visibility: hidden; }
+    #printArea, #printArea * { visibility: visible; }
+    #printArea { position: absolute; left: 0; top: 0; width: 58mm; color: #000; }
+}
+</style>
+</head>
+<body>
+
+<header class="navbar">
+    <div class="menu-icon" onclick="toggleMenu()">☰</div>
+    <div class="logo">STAR DIGITAL</div>
+    <div></div> </header>
+
+<div class="main-wrapper">
+    <div class="calculator-container">
+      <div class="item-entry-bar">
+            <input type="text" id="item-name" placeholder="Item ka naam (e.g. Samosa)">
+        </div>
+        <div class="display-box">
+            <div class="display-row" id="hist-scroll"><span class="label">History:</span> <span id="history-row"></span></div>
+            <div class="display-row"><span class="label">Sub-Total:</span> <span id="grand-total">0</span></div>
+            <div class="display-row live-row"><span class="label">Live:</span> <input type="text" id="live-display" value="0" readonly></div>
+        </div>
+
+        <div class="extra-inputs">
+            <div class="input-group">
+                <label>Pichla Udhar</label>
+                <input type="number" id="prevDue" value="0" onclick="setCurrentInput('prevDue')" readonly>
+            </div>
+            <div class="input-group">
+                <label>Aaj Jama</label>
+                <input type="number" id="received" value="0" onclick="setCurrentInput('received')" readonly>
+            </div>
+        </div>
+
+        <div class="grand-balance-box">
+            <span>Net Balance:</span>
+            <span id="net-result">₹ 0</span>
+        </div>
+
+        <div class="buttons">
+            <button onclick="clearAll()" class="btn-clear">AC</button>
+            <button onclick="undo()" class="btn-undo">Undo</button>
+            <button onclick="backspace()" class="btn-op">⌫</button>
+            <button onclick="addOperator('/')" class="btn-op">÷</button>
+            
+            <button onclick="addNumber('7')">7</button>
+            <button onclick="addNumber('8')">8</button>
+            <button onclick="addNumber('9')">9</button>
+            <button onclick="addOperator('*')" class="btn-op">×</button>
+            
+            <button onclick="addNumber('4')">4</button>
+            <button onclick="addNumber('5')">5</button>
+            <button onclick="addNumber('6')">6</button>
+            <button onclick="addOperator('+')" class="btn-op">+</button>
+            
+            <button onclick="addNumber('1')">1</button>
+            <button onclick="addNumber('2')">2</button>
+            <button onclick="addNumber('3')">3</button>
+            <button onclick="calculate()" class="btn-equal">=</button>
+            
+            <button onclick="addNumber('0')">0</button>
+            <button onclick="addNumber('.')">.</button>
+            <button onclick="printBill()" class="btn-print">PRINT</button>
+        </div>
+    </div>
+</div>
+
+<footer class="footer">
+    <a href="#">Dashboard</a>
+    <a href="#">History</a>
+    <a href="#">Settings</a>
+</footer>
+
+<div id="printArea" style="display:none;"></div>
+
+<!--<script src="script.js"></script>-->
+  <script>
+    let printerDevice = null;
+  let liveInput = "";
+let historyItems = [];
+let grandTotal = 0;
+let activeField = "live";
+let lastState = null; // For Undo
+/*
+function updateNetBalance() {
+    let prevDue = parseFloat(document.getElementById('prevDue').value) || 0;
+    let received = parseFloat(document.getElementById('received').value) || 0;
+    let net = (grandTotal + prevDue) - received;
+    document.getElementById('net-result').innerText = "₹ " + net.toFixed(2);
+}
+*/
+    function updateNetBalance() {
+    let prevDue = parseFloat(document.getElementById('prevDue').value) || 0;
+    let received = parseFloat(document.getElementById('received').value) || 0;
+    let net = (grandTotal + prevDue) - received;
+    document.getElementById('net-result').innerText = "₹ " + net.toFixed(2);
+}
+
+function setCurrentInput(field) {
+    activeField = field;
+    document.querySelectorAll('.input-group input').forEach(el => el.style.borderColor = "#444");
+    document.getElementById(field).style.borderColor = "var(--primary-glow)";
+}
+
+function addNumber(num) {
+    if (activeField === "live") {
+        liveInput = (liveInput === "0") ? num : liveInput + num;
+        document.getElementById('live-display').value = liveInput;
+        // Auto Scroll Live
+        let el = document.getElementById('live-display');
+        el.scrollLeft = el.scrollWidth;
+    } else {
+        let field = document.getElementById(activeField);
+        field.value = (field.value === "0") ? num : field.value + num;
+        updateNetBalance();
+    }
+}
+
+function addOperator(op) {
+    activeField = "live";
+    if (liveInput === "") return;
+    liveInput += " " + op + " ";
+    document.getElementById('live-display').value = liveInput;
+}
+/*
+function calculate() {
+    try {
+        if (liveInput === "") return;
+        let expression = liveInput.replace('×', '*').replace('÷', '/');
+        let result = eval(expression);
+        
+        historyItems.push(liveInput);
+        grandTotal += result;
+
+        document.getElementById('history-row').innerText = historyItems.join(", ");
+        document.getElementById('grand-total').innerText = grandTotal.toFixed(2);
+        
+        // Auto Scroll History
+        let hist = document.getElementById('hist-scroll');
+        hist.scrollLeft = hist.scrollWidth;
+
+        liveInput = "";
+        document.getElementById('live-display').value = "0";
+        updateNetBalance();
+    } catch (e) {
+        alert("Calculation Error");
+    }
+}
+*/
+    function calculate() {
+    try {
+        if (liveInput === "" || liveInput === "0") return;
+        
+        let nameInput = document.getElementById('item-name').value || "Item";
+        let expression = liveInput.trim();
+        // Replace visual ops with math ops
+        let mathExp = expression.replace(/×/g, '*').replace(/÷/g, '/');
+        let result = eval(mathExp);
+
+        if (isNaN(result)) throw "Error";
+
+        // Update Total & History
+        grandTotal += result;
+        historyItems.push(`${nameInput}: ${expression} = ${result.toFixed(2)}`);
+
+        // Update UI
+        document.getElementById('history-row').innerText = historyItems.join(" | ");
+        document.getElementById('grand-total').innerText = grandTotal.toFixed(2);
+        
+        // Clear for next
+        liveInput = "";
+        document.getElementById('live-display').value = "0";
+        document.getElementById('item-name').value = "";
+        updateNetBalance();
+
+    } catch (e) {
+        alert("Sahi format likhein (e.g. 10 + 20)");
+        liveInput = "";
+        document.getElementById('live-display').value = "0";
+    }
+}
+function clearAll() {
+    // Save state before clearing for Undo
+    lastState = {
+        history: [...historyItems],
+        total: grandTotal,
+        prev: document.getElementById('prevDue').value,
+        recv: document.getElementById('received').value
+    };
+    
+    liveInput = "";
+    historyItems = [];
+    grandTotal = 0;
+    document.getElementById('live-display').value = "0";
+    document.getElementById('history-row').innerText = "";
+    document.getElementById('grand-total').innerText = "0";
+    document.getElementById('prevDue').value = "0";
+    document.getElementById('received').value = "0";
+    document.getElementById('item-name').value = "";
+    updateNetBalance();
+}
+
+    
+function undo() {
+    if (lastState) {
+        historyItems = lastState.history;
+        grandTotal = lastState.total;
+        document.getElementById('prevDue').value = lastState.prev;
+        document.getElementById('received').value = lastState.recv;
+        
+        document.getElementById('history-row').innerText = historyItems.join(", ");
+        document.getElementById('grand-total').innerText = grandTotal;
+        updateNetBalance();
+        lastState = null; // Use once
+    } else {
+        alert("Nothing to undo!");
+    }
+}
+
+function backspace() {
+    if (activeField === "live") {
+        liveInput = liveInput.trim().slice(0, -1);
+        document.getElementById('live-display').value = liveInput || "0";
+    } else {
+        let field = document.getElementById(activeField);
+        field.value = field.value.slice(0, -1) || "0";
+        updateNetBalance();
+    }
+          }
+/*
+async function printBill() {
+    if (historyItems.length === 0 && liveInput === "") {
+        return alert("Pehle calculation karein!");
+    }
+
+    try {
+        // Bluetooth Connection Logic
+        if (!printerDevice) {
+            printerDevice = await navigator.bluetooth.requestDevice({
+                filters: [
+                    { services: ['000018f0-0000-1000-8000-00805f9b34fb'] }, 
+                    { namePrefix: 'SRS' }, 
+                    { namePrefix: 'Bluetooth' }
+                ],
+                optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb']
+            });
+        }
+
+        const server = await printerDevice.gatt.connect();
+        const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
+        const characteristic = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
+
+        // Bill Data taiyar karna
+        let prevDue = parseFloat(document.getElementById('prevDue').value) || 0;
+        let received = parseFloat(document.getElementById('received').value) || 0;
+        let net = (grandTotal + prevDue) - received;
+        let date = new Date().toLocaleString();
+
+        // ESC/POS Commands (Thermal Printer ki bhasha)
+        let esc = '\x1B\x40'; // Initialize printer
+        esc += '\x1B\x61\x01'; // Center Align
+        esc += '\x1B\x21\x30' + 'STAR DIGITAL\n'; // Double height/width text
+        esc += '\x1B\x21\x00'; // Normal text
+        esc += '--------------------------------\n';
+        esc += '\x1B\x61\x00'; // Left Align
+        esc += `Date: ${date}\n`;
+        esc += '--------------------------------\n';
+        
+        // Items list (History) print karna
+        historyItems.forEach((item, index) => {
+            esc += `${index + 1}. ${item}\n`;
+        });
+
+        esc += '--------------------------------\n';
+        esc += `SUB TOTAL:      Rs.${grandTotal.toFixed(2)}\n`;
+        esc += `PICHLA UDHAR:   Rs.${prevDue.toFixed(2)}\n`;
+        esc += `AAJ JAMA:       Rs.${received.toFixed(2)}\n`;
+        esc += '--------------------------------\n';
+        esc += '\x1B\x21\x10'; // Bold text
+        esc += `NET BALANCE:    Rs.${net.toFixed(2)}\n`;
+        esc += '\x1B\x21\x00'; // Normal
+        esc += '--------------------------------\n';
+        esc += '\x1B\x61\x01' + '\nDHANYAWAD! VISIT AGAIN\n\n\n\n';
+
+        const encoder = new TextEncoder();
+        await characteristic.writeValue(encoder.encode(esc));
+        
+        alert("Printing Successful!");
+    } catch (error) {
+        console.log(error);
+        alert("Printer connect nahi hua! Bluetooth on karein aur SRS588 select karein.");
+    }
+}
+*/
+    async function printBill() {
+    if (historyItems.length === 0) return alert("Pehle item add karein!");
+
+    try {
+        if (!printerDevice) {
+            printerDevice = await navigator.bluetooth.requestDevice({
+                filters: [{ services: ['000018f0-0000-1000-8000-00805f9b34fb'] }, { namePrefix: 'SRS' }, { namePrefix: 'Bluetooth' }],
+                optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb']
+            });
+        }
+
+        const server = await printerDevice.gatt.connect();
+        const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
+        const characteristic = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
+
+        let sName = localStorage.getItem('shopName') || "STAR DIGITAL";
+        let sContact = localStorage.getItem('shopContact') || "98XXXXXXXX";
+        let cName = document.getElementById('set-cust-name').value || "Guest";
+        let cContact = document.getElementById('set-cust-contact').value || "N/A";
+        let prevDue = parseFloat(document.getElementById('prevDue').value) || 0;
+        let received = parseFloat(document.getElementById('received').value) || 0;
+        let net = (grandTotal + prevDue) - received;
+        
+        let now = new Date();
+        let dateStr = now.toLocaleDateString();
+        let timeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+        let esc = '\x1B\x40'; 
+        esc += '\x1B\x61\x01'; 
+        esc += '\x1B\x21\x30' + sName + '\n'; 
+        esc += '\x1B\x21\x00' + 'Mob: ' + sContact + '\n';
+        esc += '--------------------------------\n';
+        esc += '\x1B\x61\x00'; 
+        esc += `Date: ${dateStr}  Time: ${timeStr}\n`;
+        esc += `Cust: ${cName}\n`;
+        esc += `Contact: ${cContact}\n`;
+        esc += '--------------------------------\n';
+        
+        historyItems.forEach((item, index) => {
+            esc += `${index + 1}. ${item}\n`;
+        });
+
+        esc += '--------------------------------\n';
+        esc += `SUB TOTAL:      Rs.${grandTotal.toFixed(2)}\n`;
+        esc += `PICHLA UDHAR:   Rs.${prevDue.toFixed(2)}\n`;
+        esc += `AAJ JAMA:       Rs.${received.toFixed(2)}\n`;
+        esc += '--------------------------------\n';
+        esc += '\x1B\x21\x10' + `NET BALANCE:    Rs.${net.toFixed(2)}\n` + '\x1B\x21\x00';
+        esc += '\x1B\x61\x01' + '\nDHANYAWAD! VISIT AGAIN\n\n\n\n';
+
+        const encoder = new TextEncoder();
+        await characteristic.writeValue(encoder.encode(esc));
+    } catch (error) {
+        alert("Bluetooth Printer Connect Nahi Hua!");
+    }
+}
+
+</script>
+</body>
+</html>
+/*
+// 3. Calculation & Display Logic
+function updateNetBalance() {
+    let prevDue = parseFloat(document.getElementById('prevDue').value) || 0;
+    let received = parseFloat(document.getElementById('received').value) || 0;
+    let net = (grandTotal + prevDue) - received;
+    document.getElementById('net-result').innerText = "₹ " + net.toFixed(2);
+}
+
+function setCurrentInput(field) {
+    activeField = field;
+    document.querySelectorAll('.input-group input').forEach(el => el.style.borderColor = "#ccc");
+    document.getElementById(field).style.borderColor = "#007bff";
+}
+
+function addNumber(num) {
+    if (activeField === "live") {
+        liveInput = (liveInput === "0") ? num : liveInput + num;
+        document.getElementById('live-display').value = liveInput;
+    } else {
+        let field = document.getElementById(activeField);
+        field.value = (field.value === "0") ? num : field.value + num;
+        updateNetBalance();
+    }
+}
+
+function addOperator(op) {
+    activeField = "live";
+    if (liveInput === "" || liveInput === "0") return;
+    liveInput += " " + op + " ";
+    document.getElementById('live-display').value = liveInput;
+}
+
+function calculate() {
+    try {
+        if (liveInput === "" || liveInput === "0") return;
+        
+        let nameInput = document.getElementById('item-name').value || "Item";
+        let expression = liveInput.trim();
+        // Replace visual ops with math ops
+        let mathExp = expression.replace(/×/g, '*').replace(/÷/g, '/');
+        let result = eval(mathExp);
+
+        if (isNaN(result)) throw "Error";
+
+        // Update Total & History
+        grandTotal += result;
+        historyItems.push(`${nameInput}: ${expression} = ${result.toFixed(2)}`);
+
+        // Update UI
+        document.getElementById('history-row').innerText = historyItems.join(" | ");
+        document.getElementById('grand-total').innerText = grandTotal.toFixed(2);
+        
+        // Clear for next
+        liveInput = "";
+        document.getElementById('live-display').value = "0";
+        document.getElementById('item-name').value = "";
+        updateNetBalance();
+
+    } catch (e) {
+        alert("Sahi format likhein (e.g. 10 + 20)");
+        liveInput = "";
+        document.getElementById('live-display').value = "0";
+    }
+}
+
+// 4. Printer Logic
+async function printBill() {
+    if (historyItems.length === 0) return alert("Pehle item add karein!");
+
+    try {
+        if (!printerDevice) {
+            printerDevice = await navigator.bluetooth.requestDevice({
+                filters: [{ services: ['000018f0-0000-1000-8000-00805f9b34fb'] }, { namePrefix: 'SRS' }, { namePrefix: 'Bluetooth' }],
+                optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb']
+            });
+        }
+
+        const server = await printerDevice.gatt.connect();
+        const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
+        const characteristic = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
+
+        let sName = localStorage.getItem('shopName') || "STAR DIGITAL";
+        let sContact = localStorage.getItem('shopContact') || "98XXXXXXXX";
+        let cName = document.getElementById('set-cust-name').value || "Guest";
+        let cContact = document.getElementById('set-cust-contact').value || "N/A";
+        let prevDue = parseFloat(document.getElementById('prevDue').value) || 0;
+        let received = parseFloat(document.getElementById('received').value) || 0;
+        let net = (grandTotal + prevDue) - received;
+        
+        let now = new Date();
+        let dateStr = now.toLocaleDateString();
+        let timeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+        let esc = '\x1B\x40'; 
+        esc += '\x1B\x61\x01'; 
+        esc += '\x1B\x21\x30' + sName + '\n'; 
+        esc += '\x1B\x21\x00' + 'Mob: ' + sContact + '\n';
+        esc += '--------------------------------\n';
+        esc += '\x1B\x61\x00'; 
+        esc += `Date: ${dateStr}  Time: ${timeStr}\n`;
+        esc += `Cust: ${cName}\n`;
+        esc += `Contact: ${cContact}\n`;
+        esc += '--------------------------------\n';
+        
+        historyItems.forEach((item, index) => {
+            esc += `${index + 1}. ${item}\n`;
+        });
+
+        esc += '--------------------------------\n';
+        esc += `SUB TOTAL:      Rs.${grandTotal.toFixed(2)}\n`;
+        esc += `PICHLA UDHAR:   Rs.${prevDue.toFixed(2)}\n`;
+        esc += `AAJ JAMA:       Rs.${received.toFixed(2)}\n`;
+        esc += '--------------------------------\n';
+        esc += '\x1B\x21\x10' + `NET BALANCE:    Rs.${net.toFixed(2)}\n` + '\x1B\x21\x00';
+        esc += '\x1B\x61\x01' + '\nDHANYAWAD! VISIT AGAIN\n\n\n\n';
+
+        const encoder = new TextEncoder();
+        await characteristic.writeValue(encoder.encode(esc));
+    } catch (error) {
+        alert("Bluetooth Printer Connect Nahi Hua!");
+    }
+}
+*/
