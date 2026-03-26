@@ -1247,7 +1247,7 @@ window.onload = () => {
         <div id="bill-items" class="max-h-32 overflow-y-auto space-y-1 mb-2 no-scrollbar"></div>
         
         <input type="text" id="custName" placeholder="Customer Name..." class="w-full p-1 border-b border-gray-300 outline-none font-bold text-[11px] mb-2 bg-transparent">
-
+<button onclick="printBill()" class="btn-action bg-gray-800">🖨️<span>Print</span></button>
         <div class="flex justify-between items-center px-3 py-1 bg-purple-900 text-white rounded-md mb-3">
             <span class="text-[9px] font-bold opacity-70 uppercase tracking-tighter">TOTAL</span>
             <span class="text-base font-black text-yellow-300">₹<span id="grand-total">0.00</span></span>
@@ -1296,6 +1296,69 @@ window.onload = () => {
         let inventory = JSON.parse(localStorage.getItem('myInventory')) || [];
         let cart = [];
         let currentPhoto = '';
+let printerDevice = null;
+
+async function printBill() {
+    if (cart.length === 0) return alert("Pehle Bill mein items add karein!");
+
+    try {
+        // 1. Bluetooth Connection Check
+        if (!printerDevice) {
+            printerDevice = await navigator.bluetooth.requestDevice({
+                filters: [{ namePrefix: 'Bluetooth' }, { namePrefix: 'SRS' }, { namePrefix: 'MPT' }],
+                optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb']
+            });
+        }
+
+        const server = await printerDevice.gatt.connect();
+        const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
+        const characteristic = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
+
+        // 2. Data Preparation
+        const shopName = document.getElementById('shopName').value || "Mera Shop";
+        const shopContact = document.getElementById('shopContact').value || "";
+        const custName = document.getElementById('custName').value || "Cash Customer";
+        const totalAmt = document.getElementById('grand-total').innerText;
+        const date = new Date().toLocaleDateString('hi-IN') + " " + new Date().toLocaleTimeString('hi-IN', {hour: '2-digit', minute:'2-digit'});
+
+        // 3. ESC/POS Commands (2-inch optimized)
+        let esc = '\x1B\x40'; // Initialize
+        esc += '\x1B\x61\x01'; // Center Align
+        esc += '\x1B\x21\x10' + shopName.toUpperCase() + '\n'; // Double height (Slim)
+        if(shopContact) esc += '\x1B\x21\x00' + 'Mob: ' + shopContact + '\n';
+        esc += '--------------------------------\n'; // 32 chars
+        
+        esc += '\x1B\x61\x00'; // Left Align
+        esc += `Date: ${date}\n`;
+        esc += `Cust: ${custName.substring(0, 25)}\n`;
+        esc += '--------------------------------\n';
+        esc += 'Item           Qty    Amount\n';
+        esc += '--------------------------------\n';
+
+        // 4. Items Loop (Fixed Spacing for 2-inch)
+        cart.forEach((item) => {
+            let name = item.name.substring(0, 14).padEnd(14, ' ');
+            let qty = item.qty.toFixed(2).toString().padStart(6, ' ');
+            let amt = (item.rate * item.qty).toFixed(2).toString().padStart(10, ' ');
+            esc += `${name}${qty}${amt}\n`;
+        });
+
+        esc += '--------------------------------\n';
+        esc += '\x1B\x61\x02'; // Right Align
+        esc += '\x1B\x21\x10' + `TOTAL: Rs.${totalAmt}\n`; // Bold Total
+        
+        esc += '\x1B\x61\x01'; // Center
+        esc += '\x1B\x21\x00' + '\nDHANYAWAD! VISIT AGAIN\n\n\n\n'; // Extra space for paper cut
+
+        const encoder = new TextEncoder();
+        await characteristic.writeValue(encoder.encode(esc));
+        
+        alert("Printing...");
+    } catch (error) {
+        console.error(error);
+        alert("Printer error! Bluetooth on karein aur check karein.");
+    }
+}
 
         // 1. Working Camera
         async function startCamera() {
@@ -1453,6 +1516,7 @@ window.onload = () => {
             if(saved) { document.getElementById('shopName').value = saved.name; document.getElementById('shopContact').value = saved.contact; }
             renderAll(); 
         };
+        
     </script>
 </body>
 </html>
