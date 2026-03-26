@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saral Bill POS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .active-cat { border-left: 4px solid #7c3aed; background: #f3f4f6; }
+    </style>
+</head>
+<body class="bg-gray-100 flex flex-col h-screen overflow-hidden">
+
+    <header class="bg-purple-700 text-white p-3 text-center font-bold shadow-md">
+        Saral Bill - POS Mode
+    </header>
+
+    <div class="flex flex-1 overflow-hidden">
+        <aside class="w-24 bg-white border-r overflow-y-auto no-scrollbar order-2">
+            <div onclick="filterCat('All')" class="p-3 text-xs text-center border-b cursor-pointer active-cat">All</div>
+            <div onclick="filterCat('Grocery')" class="p-3 text-xs text-center border-b cursor-pointer">Grocery</div>
+            <div onclick="filterCat('Electronics')" class="p-3 text-xs text-center border-b cursor-pointer">Electronics</div>
+        </aside>
+
+        <main id="product-list" class="flex-1 p-2 overflow-y-auto grid grid-cols-2 gap-2 content-start order-1">
+            </main>
+    </div>
+
+    <section class="bg-white border-t shadow-lg p-3 max-h-64 overflow-y-auto">
+        <h3 class="font-bold text-sm mb-2 border-b pb-1">Current Bill</h3>
+        <div id="bill-items" class="space-y-2">
+            </div>
+        <div class="flex justify-between mt-3 font-bold text-lg text-purple-800">
+            <span>Total:</span>
+            <span>₹<span id="grand-total">0.00</span></span>
+        </div>
+        <button onclick="clearBill()" class="w-full mt-2 bg-red-500 text-white py-2 rounded text-sm">Clear All</button>
+    </section>
+
+    <script>
+        // Sample Data (Aap ise expand kar sakte hain)
+        const products = [
+            { id: 1, name: "Lux Soap", brand: "Unilever", cat: "Grocery", rate: 35.50, img: "🧼" },
+            { id: 2, name: "Amul Milk", brand: "Amul", cat: "Grocery", rate: 28.00, img: "🥛" },
+            { id: 3, name: "USB Cable", brand: "Boat", cat: "Electronics", rate: 199.99, img: "🔌" }
+        ];
+
+        let cart = JSON.parse(localStorage.getItem('myCart')) || [];
+
+        function renderProducts() {
+            const container = document.getElementById('product-list');
+            container.innerHTML = products.map(p => `
+                <div class="bg-white p-2 rounded shadow-sm border flex flex-col items-center">
+                    <span class="text-3xl">${p.img}</span>
+                    <h4 class="text-sm font-bold mt-1 text-center">${p.name}</h4>
+                    <p class="text-xs text-gray-500">${p.brand}</p>
+                    <p class="text-blue-600 font-bold">₹${p.rate.toFixed(2)}</p>
+                    <button onclick="addToCart(${p.id})" class="mt-2 bg-purple-600 text-white px-3 py-1 rounded-full text-xs">+ Add</button>
+                </div>
+            `).join('');
+        }
+
+        function addToCart(id) {
+            const product = products.find(p => p.id === id);
+            const exist = cart.find(item => item.id === id);
+            if(exist) {
+                exist.qty++;
+            } else {
+                cart.push({...product, qty: 1});
+            }
+            updateUI();
+        }
+
+        function updateQty(id, delta) {
+            const item = cart.find(i => i.id === id);
+            if(item) {
+                item.qty += delta;
+                if(item.qty <= 0) cart = cart.filter(i => i.id !== id);
+                updateUI();
+            }
+        }
+
+        function updateUI() {
+            localStorage.setItem('myCart', JSON.stringify(cart));
+            const container = document.getElementById('bill-items');
+            let total = 0;
+
+            container.innerHTML = cart.map(item => {
+                const amount = item.rate * item.qty;
+                total += amount;
+                return `
+                    <div class="flex justify-between items-center text-sm border-b pb-1">
+                        <div class="flex items-center gap-2">
+                            <span>${item.img}</span>
+                            <div>
+                                <p class="font-medium">${item.name}</p>
+                                <p class="text-xs text-gray-400">₹${item.rate} x ${item.qty}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="updateQty(${item.id}, -1)" class="bg-gray-200 px-2 rounded">-</button>
+                            <span class="w-4 text-center">${item.qty}</span>
+                            <button onclick="updateQty(${item.id}, 1)" class="bg-gray-200 px-2 rounded">+</button>
+                            <span class="ml-2 font-bold w-16 text-right">₹${amount.toFixed(2)}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            document.getElementById('grand-total').innerText = total.toFixed(2);
+        }
+
+        function clearBill() {
+            cart = [];
+            updateUI();
+        }
+
+        // Initialize
+        renderProducts();
+        updateUI();
+
+        // Register Service Worker for PWA
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
+    </script>
+</body>
+</html>
