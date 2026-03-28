@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebCraft - Apna Business Online Layein</title>
+    <link rel="manifest" href="manifest.json">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --secondary: #ec4899;
+            --dark: #1e293b;
+            --light: #f8fafc;
+            --accent: #10b981;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background: var(--light); color: var(--dark); overflow-x: hidden; }
+
+        /* Animations */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white; padding: 60px 20px; text-align: center;
+            border-bottom-right-radius: 50px; border-bottom-left-radius: 50px;
+        }
+
+        .hero h1 { font-size: 2.5rem; margin-bottom: 15px; animation: fadeIn 1s ease; }
+
+        /* Business Growth Section */
+        .content-section { padding: 40px 20px; max-width: 800px; margin: auto; line-height: 1.8; text-align: justify; }
+        .content-section h2 { color: var(--primary); margin-bottom: 20px; text-align: center; }
+
+        /* Category Cards */
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; padding: 20px; }
+        .cat-card {
+            background: white; padding: 20px; border-radius: 15px; text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: 0.3s; cursor: pointer;
+        }
+        .cat-card:hover { transform: translateY(-10px); background: var(--primary); color: white; }
+        .cat-card i { font-size: 2rem; margin-bottom: 10px; }
+
+        /* Order Form Card */
+        .order-card {
+            background: white; margin: 20px; padding: 30px; border-radius: 25px;
+            box-shadow: 20px 20px 60px #d1d1d1, -20px -20px 60px #ffffff;
+        }
+        .form-group { margin-bottom: 15px; }
+        input, select { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; outline: none; transition: 0.3s; }
+        input:focus { border-color: var(--secondary); }
+        
+        .price-tag { background: #f1f5f9; padding: 10px; border-radius: 10px; margin-top: 10px; font-weight: bold; color: var(--primary); }
+
+        button {
+            width: 100%; padding: 15px; border: none; border-radius: 10px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white; font-weight: bold; cursor: pointer; transition: 0.3s;
+        }
+        button:hover { opacity: 0.9; transform: scale(1.02); }
+
+        /* FAQ */
+        .faq-card { background: #fff; margin: 20px; padding: 20px; border-radius: 15px; }
+        details { padding: 10px; border-bottom: 1px solid #eee; cursor: pointer; }
+        summary { font-weight: bold; color: var(--primary); }
+
+        /* Footer */
+        footer { text-align: center; padding: 40px; background: var(--dark); color: white; margin-top: 50px; }
+
+        @media (max-width: 600px) { .hero h1 { font-size: 1.8rem; } }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="hero">
+            <h1>Apne Business ko Digital Banayein</h1>
+            <p>Saste aur behtareen subscription plans ke sath</p>
+        </div>
+    </header>
+
+    <section class="content-section">
+        <h2>Website Banane Ke Fayde</h2>
+        <p>
+            Aaj ke digital yug mein, ek website aapke business ki pehchan hoti hai. Jab aap ek website banate hain, toh aapka business sirf ek area tak limited nahi rehta balki poore shehar aur desh tak pahunch sakta hai. Website hone ka sabse bada fayda **24/7 Availability** hai—aapka stall ya shop band hone ke baad bhi log aapki services ko dekh sakte hain. Isse customer ka **Trust** badhta hai kyunki log digital presence ko professional mante hain. 
+            <br><br>
+            Website se aap apne products (jaise Fast Food menu ya CSC services) ko sunder tarike se dikha sakte hain, jisse customer attract hote hain. Yeh ek **Marketing Tool** ki tarah kaam karta hai jahan aap offers aur discounts turant update kar sakte hain. Bina kisi badi investment ke, aap apne competitors se aage nikal sakte hain. Website se data manage karna asan hota hai, aur customer feedback ke jariye aap apni service ko behtar bana sakte hain. Chahe tea stall ho ya vegetable shop, digital presence aaj ki sabse badi zarurat hai.
+        </p>
+    </section>
+
+    <h2 style="text-align: center; margin-top: 20px;">Categories Hum Cover Karte Hain</h2>
+    <div class="grid">
+        <div class="cat-card"><i class="fas fa-hamburger"></i><p>Fast Food</p></div>
+        <div class="cat-card"><i class="fas fa-coffee"></i><p>Tea Stall</p></div>
+        <div class="cat-card"><i class="fas fa-laptop-code"></i><p>CSC Centre</p></div>
+        <div class="cat-card"><i class="fas fa-carrot"></i><p>Vegetable</p></div>
+        <div class="cat-card"><i class="fas fa-user-check"></i><p>Attendance</p></div>
+    </div>
+
+    <div class="order-card">
+        <h2 style="margin-bottom: 20px; color: var(--secondary);">Order Karein</h2>
+        <div class="form-group">
+            <input type="text" id="name" placeholder="Aapka Naam">
+        </div>
+        <div class="form-group">
+            <input type="number" id="contact" placeholder="Mobile Number">
+        </div>
+        <div class="form-group">
+            <select id="bizType">
+                <option value="">Business Type Chunein</option>
+                <option>Fast Food</option>
+                <option>Tea Stall</option>
+                <option>CSC Centre</option>
+                <option>Vegetable Shop</option>
+                <option>Attendance System</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Domain Option:</label>
+            <select id="domainOption" onchange="updatePrice()">
+                <option value="none">Bina Domain (Hamare Subdomain par)</option>
+                <option value="with">Apna Domain (Domain + Website)</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Plan Chunein:</label>
+            <select id="plan" onchange="updatePrice()">
+                <option value="1">1 Month Plan</option>
+                <option value="3">3 Months Plan</option>
+            </select>
+        </div>
+        <div class="price-tag" id="priceDisplay">Price: ₹199/-</div>
+        <button onclick="submitOrder()">Abhi Order Karein</button>
+    </div>
+
+    <div class="faq-card">
+        <h3>Aksar Pooche Jane Wale Sawal (FAQ)</h3>
+        <details>
+            <summary>Kya data safe rahega?</summary>
+            <p>Ji haan, abhi sara data aapke browser ke LocalStorage mein save hoga, jo puri tarah private hai.</p>
+        </details>
+        <details>
+            <summary>Website kitne din mein ban jayegi?</summary>
+            <p>Humari team 24-48 ghanton mein aapki website live kar degi.</p>
+        </details>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 WebCraft Team. Built for Growth.</p>
+    </footer>
+
+    <script>
+        function updatePrice() {
+            const domain = document.getElementById('domainOption').value;
+            const plan = document.getElementById('plan').value;
+            let basePrice = (plan === "1") ? 199 : 499;
+            if (domain === "with") {
+                basePrice += 800; // Domain charges extra
+            }
+            document.getElementById('priceDisplay').innerText = "Estimated Price: ₹" + basePrice + "/-";
+        }
+
+        function submitOrder() {
+            const name = document.getElementById('name').value;
+            if(name === "") { alert("Kripya apna naam bharein"); return; }
+            alert("Dhanyawad " + name + "! Humari team aapse jald sampark karegi.");
+        }
+
+        // Service Worker for Offline Support
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
+    </script>
+</body>
+</html>
