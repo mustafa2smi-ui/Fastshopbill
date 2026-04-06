@@ -1557,11 +1557,21 @@ async function checkAccess() {
     try {
         const response = await fetch(`${SCRIPT_URL}?email=${emailInput}`);
         const data = await response.json();
-
+/*
         if (data.access) {
             // Success: Email save karein aur tool dikhayein
             localStorage.setItem('userEmail', emailInput);
             showTool();
+ */
+        if (data.access) {
+    localStorage.setItem('userEmail', emailInput);
+    showTool(); // Tool ko unhide karne ke baad
+    
+    // YAHAN APNA PURANA LOAD FUNCTION CALL KAREIN
+    if (typeof renderAll === "function") {
+        renderAll(); // Taaki purana data turant dikhne lage
+    }
+}
         } else {
             // Fail: Lock screen dikhayein
             showLock(data.msg, emailInput);
@@ -1586,7 +1596,7 @@ function showLock(message, email) {
     document.getElementById('lock-msg').innerText = message;
     document.getElementById('wa-link').href = `https://wa.me/91XXXXXXXXXX?text=Activation%20for%20${email}`;
 }
-
+/*
 // Page load hote hi agar email pehle se save hai toh auto-check karein
 window.onload = () => {
     const savedEmail = localStorage.getItem('userEmail');
@@ -1594,6 +1604,35 @@ window.onload = () => {
         document.getElementById('user-email').value = savedEmail;
         checkAccess();
     }
+}
+        */
+        window.onload = () => {
+    const savedEmail = localStorage.getItem('userEmail');
+    const isVerified = localStorage.getItem('isVerified'); // Naya flag
+
+    if (savedEmail && isVerified === "true") {
+        // Agar pehle se verified hai, toh bina intezar kiye tool dikhao
+        showTool(); 
+        if (typeof renderAll === "function") renderAll();
+        
+        // Background mein silently check karo (security ke liye)
+        silentCheck(savedEmail); 
+    } else if (savedEmail) {
+        document.getElementById('user-email').value = savedEmail;
+        checkAccess();
+    }
+}
+        // Ek naya function jo background mein check karega
+async function silentCheck(email) {
+    try {
+        const response = await fetch(`${SCRIPT_URL}?email=${email}`);
+        const data = await response.json();
+        if (!data.access) {
+            // Agar Admin ne block kar diya ya expire ho gaya
+            localStorage.removeItem('isVerified');
+            window.location.reload(); // Page refresh karke lock screen dikhao
+        }
+    } catch (e) { console.log("Silent check failed, offline mode?"); }
 }
     </script>
 </body>
