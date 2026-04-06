@@ -1544,7 +1544,7 @@ async function printBill() {
             renderAll(); 
         };
         
-
+/*
 async function checkAccess() {
     const emailInput = document.getElementById('user-email').value;
     if(!emailInput.includes('@')) return alert("Sahi email daalein!");
@@ -1562,7 +1562,7 @@ async function checkAccess() {
             // Success: Email save karein aur tool dikhayein
             localStorage.setItem('userEmail', emailInput);
             showTool();
- */
+ *
         if (data.access) {
     localStorage.setItem('userEmail', emailInput);
     showTool(); // Tool ko unhide karne ke baad
@@ -1582,12 +1582,24 @@ async function checkAccess() {
         btn.disabled = false;
     }
 }
-
+*/
+        /*
 function showTool() {
     document.getElementById('auth-modal').classList.add('hidden');
     document.getElementById('lock-screen').classList.add('hidden');
     document.getElementById('main-tool').classList.remove('hidden');
     // Yahan initApp() call karein agar aapka koi purana logic hai
+}
+        */
+        function showTool() {
+    document.getElementById('auth-modal').style.display = 'none';
+    document.getElementById('lock-screen').style.display = 'none';
+    document.getElementById('main-app').style.display = 'block'; 
+
+    // AGAR AAPKA DATA LOAD KARNE WALA FUNCTION 'renderAll' HAI:
+    if (typeof renderAll === "function") {
+        renderAll(); 
+    }
 }
 
 function showLock(message, email) {
@@ -1620,6 +1632,41 @@ window.onload = () => {
     } else if (savedEmail) {
         document.getElementById('user-email').value = savedEmail;
         checkAccess();
+    }
+}
+        
+            async function checkAccess() {
+    const emailInput = document.getElementById('user-email').value.trim(); // trim() se extra space hat jayegi
+    if(!emailInput.includes('@')) return alert("Sahi email daalein!");
+
+    const btn = document.getElementById('btn-text');
+    btn.innerText = "Verifying... ⏳";
+    btn.disabled = true;
+
+    try {
+        const response = await fetch(`${SCRIPT_URL}?email=${emailInput}`);
+        const data = await response.json();
+
+        if (data.access) {
+            // Success logic
+            localStorage.setItem('userEmail', emailInput);
+            localStorage.setItem('isVerified', 'true'); // Agli baar ke liye flag
+            
+            showTool(); // Tool ko dikhao
+
+            // Purana data load karne ke liye
+            if (typeof renderAll === "function") {
+                renderAll(); 
+            }
+        } else {
+            // Fail logic: Lock screen dikhayein
+            showLock(data.msg, emailInput);
+        }
+    } catch (error) {
+        console.error(error);
+        alert("Internet issue! Dubara koshish karein.");
+        btn.innerText = "Verify & Start 🚀";
+        btn.disabled = false;
     }
 }
         // Ek naya function jo background mein check karega
