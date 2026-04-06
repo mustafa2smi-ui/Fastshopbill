@@ -1289,10 +1289,37 @@ window.onload = () => {
             </div>
         </div>
     </div>
+<div id="auth-modal" class="fixed inset-0 bg-purple-900 z-[999] flex items-center justify-center p-4">
+    <div class="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-md text-center">
+        <h2 class="text-2xl font-black text-purple-700 mb-2">DIGITAL KHATA</h2>
+        <p class="text-gray-500 mb-6">Apna registered email daalkar tool shuru karein.</p>
+        <input type="email" id="user-email" placeholder="example@gmail.com" 
+               class="w-full border-2 border-purple-200 p-3 rounded-2xl mb-4 focus:border-purple-600 outline-none">
+        <button onclick="checkAccess()" id="btn-text" class="bg-purple-600 text-white w-full py-3 rounded-2xl font-bold">
+            Verify & Start 🚀
+        </button>
+    </div>
+</div>
 
+<div id="lock-screen" class="hidden fixed inset-0 bg-white z-[1000] flex flex-col items-center justify-center p-6 text-center">
+    <h2 class="text-red-600 font-black text-3xl mb-4">ACCESS DENIED! 🔒</h2>
+    <p id="lock-msg" class="mb-6 text-gray-600 text-lg">Aapka trial period khatam ho gaya hai.</p>
+    <div class="bg-gray-100 p-4 rounded-2xl mb-6">
+        <img src="YOUR_QR_CODE_URL" class="w-48 h-48 mx-auto">
+        <p class="font-bold mt-2">UPI ID: yourname@upi</p>
+    </div>
+    <a id="wa-link" href="#" class="bg-green-500 text-white px-8 py-3 rounded-2xl font-bold shadow-lg">
+        WhatsApp Admin for Activation
+    </a>
+</div>
+
+<div id="main-tool" class="hidden">
+    <h1>Mubarak Ho! Tool Active Hai.</h1>
+</div>
     <canvas id="canvas" class="hidden"></canvas>
 
     <script>
+        const SCRIPT_URL = "YOUR_GAS_WEB_APP_URL_HERE";
         let inventory = JSON.parse(localStorage.getItem('myInventory')) || [];
         let cart = [];
         let currentPhoto = '';
@@ -1517,6 +1544,57 @@ async function printBill() {
             renderAll(); 
         };
         
+
+async function checkAccess() {
+    const emailInput = document.getElementById('user-email').value;
+    if(!emailInput.includes('@')) return alert("Sahi email daalein!");
+
+    // Button ko loading state mein laayein
+    const btn = document.getElementById('btn-text');
+    btn.innerText = "Verifying... ⏳";
+    btn.disabled = true;
+
+    try {
+        const response = await fetch(`${SCRIPT_URL}?email=${emailInput}`);
+        const data = await response.json();
+
+        if (data.access) {
+            // Success: Email save karein aur tool dikhayein
+            localStorage.setItem('userEmail', emailInput);
+            showTool();
+        } else {
+            // Fail: Lock screen dikhayein
+            showLock(data.msg, emailInput);
+        }
+    } catch (error) {
+        alert("Internet issue! Dubara koshish karein.");
+        btn.innerText = "Verify & Start 🚀";
+        btn.disabled = false;
+    }
+}
+
+function showTool() {
+    document.getElementById('auth-modal').classList.add('hidden');
+    document.getElementById('lock-screen').classList.add('hidden');
+    document.getElementById('main-tool').classList.remove('hidden');
+    // Yahan initApp() call karein agar aapka koi purana logic hai
+}
+
+function showLock(message, email) {
+    document.getElementById('auth-modal').classList.add('hidden');
+    document.getElementById('lock-screen').classList.remove('hidden');
+    document.getElementById('lock-msg').innerText = message;
+    document.getElementById('wa-link').href = `https://wa.me/91XXXXXXXXXX?text=Activation%20for%20${email}`;
+}
+
+// Page load hote hi agar email pehle se save hai toh auto-check karein
+window.onload = () => {
+    const savedEmail = localStorage.getItem('userEmail');
+    if (savedEmail) {
+        document.getElementById('user-email').value = savedEmail;
+        checkAccess();
+    }
+}
     </script>
 </body>
 </html>
