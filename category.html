@@ -1715,9 +1715,10 @@ window.onload = () => {
         }
     }, 300);
         } else {
-            // Fail logic: Lock screen dikhayein
-            showLock(data.msg, emailInput);
-        }
+    // Agar server kahe ki Access False hai (Date expire ya Blocked)
+    localStorage.removeItem('isVerified'); // Verification khatam karo
+    showLock(data.msg, emailInput); // Lock screen dikhao
+}
     } catch (error) {
         console.error(error);
         alert("Internet issue! Dubara koshish karein.");
