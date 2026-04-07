@@ -1300,7 +1300,7 @@ window.onload = () => {
         </button>
     </div>
 </div>
-
+<!--
 <div id="lock-screen" class="hidden fixed inset-0 bg-white z-[1000] flex flex-col items-center justify-center p-6 text-center">
     <h2 class="text-red-600 font-black text-3xl mb-4">ACCESS DENIED! 🔒</h2>
     <p id="lock-msg" class="mb-6 text-gray-600 text-lg">Aapka trial period khatam ho gaya hai.</p>
@@ -1312,7 +1312,22 @@ window.onload = () => {
         WhatsApp Admin for Activation
     </a>
 </div>
+-->
+    <div id="lock-screen" class="hidden fixed inset-0 bg-white z-[1000] flex flex-col items-center justify-center p-6 text-center">
+    <h2 class="text-red-600 font-black text-3xl mb-4">TRIAL EXPIRED! 🔒</h2>
+    
+    <div class="bg-gray-100 p-6 rounded-3xl mb-6 shadow-inner">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=YOUR_UPI_ID@okicici&pn=DigitalKhata&cu=INR" 
+             alt="Payment QR" class="w-48 h-48 mx-auto border-4 border-white rounded-xl">
+        <p class="font-bold mt-3 text-purple-700">UPI ID: YOUR_UPI_ID@okicici</p>
+    </div>
 
+    <p class="mb-6 text-gray-600">Scan karke payment karein aur screenshot niche diye button se bhejein.</p>
+    
+    <a id="payment-btn" href="#" class="bg-green-500 text-white px-8 py-3 rounded-2xl font-bold shadow-lg">
+        Send Payment Screenshot 📱
+    </a>
+</div>
 <div id="main-tool" class="hidden">
     <h1>Mubarak Ho! Tool Active Hai.</h1>
 </div>
@@ -1601,12 +1616,26 @@ function showTool() {
         renderAll(); 
     }
 }
-
+/*
 function showLock(message, email) {
     document.getElementById('auth-modal').classList.add('hidden');
     document.getElementById('lock-screen').classList.remove('hidden');
     document.getElementById('lock-msg').innerText = message;
     document.getElementById('wa-link').href = `https://wa.me/91XXXXXXXXXX?text=Activation%20for%20${email}`;
+}
+        */
+        function showLock(message, email) {
+    document.getElementById('auth-modal').classList.add('hidden');
+    document.getElementById('lock-screen').classList.remove('hidden');
+    
+    const adminEmail = "mustafa2smi@gmail.com"; // Aapka Email
+    const subject = "Payment Screenshot for Digital Khata - " + email;
+    const body = "Assalamu Alaikum, Maine payment kar di hai. Ye raha mera screenshot. Kripya mera account active karein. Email: " + email;
+
+    // Email Button setup
+    const emailLink = `mailto:${adminEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    document.getElementById('payment-btn').href = emailLink;
+    document.getElementById('payment-btn').innerText = "Email Payment Screenshot 📧";
 }
 /*
 // Page load hote hi agar email pehle se save hai toh auto-check karein
@@ -1646,7 +1675,7 @@ window.onload = () => {
     try {
         const response = await fetch(`${SCRIPT_URL}?email=${emailInput}`);
         const data = await response.json();
-
+/*
         if (data.access) {
             // Success logic
             localStorage.setItem('userEmail', emailInput);
@@ -1658,6 +1687,19 @@ window.onload = () => {
             if (typeof renderAll === "function") {
                 renderAll(); 
             }
+            */
+        if (data.access) {
+    localStorage.setItem('userEmail', emailInput);
+    localStorage.setItem('isVerified', 'true');
+    showTool(); 
+
+    // Chota sa delay (300ms) taaki tool pehle load ho jaye
+    setTimeout(() => {
+        if (typeof renderAll === "function") {
+            renderAll(); 
+            console.log("Data Rendered Successfully!");
+        }
+    }, 300);
         } else {
             // Fail logic: Lock screen dikhayein
             showLock(data.msg, emailInput);
@@ -1669,6 +1711,21 @@ window.onload = () => {
         btn.disabled = false;
     }
 }
+        /*
+        if (data.access) {
+    localStorage.setItem('userEmail', emailInput);
+    localStorage.setItem('isVerified', 'true');
+    showTool(); 
+
+    // Chota sa delay (300ms) taaki tool pehle load ho jaye
+    setTimeout(() => {
+        if (typeof renderAll === "function") {
+            renderAll(); 
+            console.log("Data Rendered Successfully!");
+        }
+    }, 300);
+}
+        */
         // Ek naya function jo background mein check karega
 async function silentCheck(email) {
     try {
