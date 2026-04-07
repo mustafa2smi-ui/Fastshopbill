@@ -1552,13 +1552,13 @@ async function printBill() {
         function saveBill() { alert("Saved!"); }
         function shareBill() { alert("Sharing..."); }
         function exportCSV() { alert("CSV Ready!"); }
-
+/*
         window.onload = () => { 
             const saved = JSON.parse(localStorage.getItem('shopDetails'));
             if(saved) { document.getElementById('shopName').value = saved.name; document.getElementById('shopContact').value = saved.contact; }
             renderAll(); 
         };
-        
+        */
 /*
 async function checkAccess() {
     const emailInput = document.getElementById('user-email').value;
@@ -1648,21 +1648,35 @@ window.onload = () => {
 }
         */
         window.onload = () => {
-    const savedEmail = localStorage.getItem('userEmail');
-    const isVerified = localStorage.getItem('isVerified'); // Naya flag
+    console.log("System Initializing...");
 
-    if (savedEmail && isVerified === "true") {
-        // Agar pehle se verified hai, toh bina intezar kiye tool dikhao
-        showTool(); 
-        if (typeof renderAll === "function") renderAll();
-        
-        // Background mein silently check karo (security ke liye)
-        silentCheck(savedEmail); 
-    } else if (savedEmail) {
-        document.getElementById('user-email').value = savedEmail;
-        checkAccess();
+    // 1. Shop Details Load Karein (Shopyou wala part)
+    const savedDetails = JSON.parse(localStorage.getItem('shopDetails'));
+    if(savedDetails) { 
+        if(document.getElementById('shopName')) document.getElementById('shopName').value = savedDetails.name; 
+        if(document.getElementById('shopContact')) document.getElementById('shopContact').value = savedDetails.contact; 
     }
-}
+
+    // 2. Inventory Array Load Karein (Taaki renderAll ko data mile)
+    // Maan lijiye aapka inventory 'myInventory' naam se save hai
+    if (typeof inventory === 'undefined') {
+        window.inventory = JSON.parse(localStorage.getItem('myInventory')) || [];
+    }
+
+    // 3. Subscription/Email Check Karein
+    const savedEmail = localStorage.getItem('userEmail');
+    const isVerified = localStorage.getItem('isVerified');
+
+    if (savedEmail && isVerified === 'true') {
+        // Direct Tool par bhejein
+        showTool(); 
+        // Background check (Silent)
+        silentVerify(savedEmail);
+    } else if (savedEmail) {
+        // Email fill kar dein taaki user bas button dabaye
+        if(document.getElementById('user-email')) document.getElementById('user-email').value = savedEmail;
+    }
+};
         
             async function checkAccess() {
     const emailInput = document.getElementById('user-email').value.trim(); // trim() se extra space hat jayegi
@@ -1710,22 +1724,7 @@ window.onload = () => {
         btn.innerText = "Verify & Start 🚀";
         btn.disabled = false;
     }
-}
-        /*
-        if (data.access) {
-    localStorage.setItem('userEmail', emailInput);
-    localStorage.setItem('isVerified', 'true');
-    showTool(); 
-
-    // Chota sa delay (300ms) taaki tool pehle load ho jaye
-    setTimeout(() => {
-        if (typeof renderAll === "function") {
-            renderAll(); 
-            console.log("Data Rendered Successfully!");
-        }
-    }, 300);
-}
-        */
+            }
         // Ek naya function jo background mein check karega
 async function silentCheck(email) {
     try {
