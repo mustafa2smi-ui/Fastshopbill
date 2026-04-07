@@ -1606,6 +1606,7 @@ function showTool() {
     // Yahan initApp() call karein agar aapka koi purana logic hai
 }
         */
+        /*
         function showTool() {
     document.getElementById('auth-modal').style.display = 'none';
     document.getElementById('lock-screen').style.display = 'none';
@@ -1615,6 +1616,25 @@ function showTool() {
     if (typeof renderAll === "function") {
         renderAll(); 
     }
+}
+        */
+        function showTool() {
+    // Dono common IDs ko check kar lete hain taaki error na aaye
+    const app = document.getElementById('main-app') || document.getElementById('main-tool');
+    const auth = document.getElementById('auth-modal');
+    const lock = document.getElementById('lock-screen');
+
+    if(auth) auth.style.display = 'none';
+    if(lock) lock.style.display = 'none';
+    if(app) app.style.display = 'block'; 
+
+    // Data render karo
+    setTimeout(() => {
+        if (typeof renderAll === "function") {
+            renderAll();
+            console.log("Data Rendered!");
+        }
+    }, 300);
 }
 /*
 function showLock(message, email) {
@@ -1650,34 +1670,30 @@ window.onload = () => {
         window.onload = () => {
     console.log("System Initializing...");
 
-    // 1. Shop Details Load Karein (Shopyou wala part)
+    // 1. Shop Details Load
     const savedDetails = JSON.parse(localStorage.getItem('shopDetails'));
     if(savedDetails) { 
         if(document.getElementById('shopName')) document.getElementById('shopName').value = savedDetails.name; 
         if(document.getElementById('shopContact')) document.getElementById('shopContact').value = savedDetails.contact; 
     }
 
-    // 2. Inventory Array Load Karein (Taaki renderAll ko data mile)
-    // Maan lijiye aapka inventory 'myInventory' naam se save hai
-    if (typeof inventory === 'undefined') {
-        window.inventory = JSON.parse(localStorage.getItem('myInventory')) || [];
+    // 2. Inventory Check
+    if (!inventory || inventory.length === 0) {
+        inventory = JSON.parse(localStorage.getItem('myInventory')) || [];
     }
 
-    // 3. Subscription/Email Check Karein
+    // 3. Subscription Check
     const savedEmail = localStorage.getItem('userEmail');
     const isVerified = localStorage.getItem('isVerified');
 
     if (savedEmail && isVerified === 'true') {
-        // Direct Tool par bhejein
         showTool(); 
-        // Background check (Silent)
-        silentVerify(savedEmail);
+        silentCheck(savedEmail); // Naam sahi kar diya
     } else if (savedEmail) {
-        // Email fill kar dein taaki user bas button dabaye
         if(document.getElementById('user-email')) document.getElementById('user-email').value = savedEmail;
     }
 };
-        
+        /*
             async function checkAccess() {
     const emailInput = document.getElementById('user-email').value.trim(); // trim() se extra space hat jayegi
     if(!emailInput.includes('@')) return alert("Sahi email daalein!");
@@ -1701,7 +1717,7 @@ window.onload = () => {
             if (typeof renderAll === "function") {
                 renderAll(); 
             }
-            */
+            *
         if (data.access) {
     localStorage.setItem('userEmail', emailInput);
     localStorage.setItem('isVerified', 'true');
@@ -1726,6 +1742,34 @@ window.onload = () => {
         btn.disabled = false;
     }
             }
+        */
+        async function checkAccess() {
+    const emailInput = document.getElementById('user-email').value.trim();
+    if(!emailInput.includes('@')) return alert("Sahi email daalein!");
+
+    const btn = document.getElementById('btn-text');
+    btn.innerText = "Verifying... ⏳";
+    btn.disabled = true;
+
+    try {
+        const response = await fetch(`${SCRIPT_URL}?email=${emailInput}`);
+        const data = await response.json();
+
+        if (data.access) {
+            localStorage.setItem('userEmail', emailInput);
+            localStorage.setItem('isVerified', 'true');
+            showTool();
+        } else {
+            showLock(data.msg, emailInput);
+        }
+    } catch (error) {
+        console.error(error);
+        alert("Internet issue! Dubara koshish karein.");
+    } finally {
+        btn.innerText = "Verify & Start 🚀";
+        btn.disabled = false;
+    }
+}
         // Ek naya function jo background mein check karega
 async function silentCheck(email) {
     try {
